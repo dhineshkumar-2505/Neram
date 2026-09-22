@@ -1,0 +1,1946 @@
+PURPOSE-DRIVEN TEMPORARY SOCIAL PLATFORM
+MASTER PRODUCT / UX / ENGINEERING BLUEPRINT
+V1
+
+============================================================
+1. PRODUCT NORTH STAR
+============================================================
+
+A temporary, purpose-aware digital space where people can communicate,
+collaborate, coordinate in the physical world, use tools relevant to their
+objective, and automatically close the space when its lifecycle ends.
+
+Core formula:
+Purpose + People + Tools + Time + Realtime + Lifecycle
+= Purpose-driven temporary group.
+
+The product is NOT a WhatsApp clone.
+
+The group is the central product object. Every group knows:
+- why it exists
+- who belongs to it
+- which tools are enabled
+- when it starts
+- when it ends
+- what information is most important
+- which permissions each member has
+
+CORE LOOP
+1. Authenticate.
+2. Create profile.
+3. Search exact usernames.
+4. Become friends.
+5. Create temporary group.
+6. Select purpose.
+7. Select duration.
+8. Invite only existing friends.
+9. Enable purpose-specific modules.
+10. Collaborate in realtime.
+11. Coordinate physically when location is enabled.
+12. Complete the objective.
+13. Expire.
+14. Archive.
+15. Purge according to retention rules.
+
+NON-NEGOTIABLE EXPERIENCE RULES
+- Premium visual hierarchy.
+- No emoji-based UI.
+- No cheap iconography.
+- No random gradients.
+- No generic AI dashboard appearance.
+- No unnecessary glassmorphism.
+- Motion must communicate state.
+- Sound and haptics must be subtle and optional.
+- Battery usage must be aggressively optimized.
+- Location must be opt-in, temporary and group-scoped.
+- Backend owns authorization and lifecycle.
+
+============================================================
+2. PREMIUM DESIGN LANGUAGE
+============================================================
+
+The visual language should feel intentional, spatial, calm, modern and
+expensive without relying on decoration.
+
+DESIGN PRINCIPLES
+
+1. Hierarchy
+Important content is visually dominant.
+
+2. Spatial calm
+Use deliberate margins and a consistent 4/8-point spacing rhythm.
+
+3. Controlled depth
+Use elevation and blur only when they explain layering.
+
+4. Purposeful motion
+Animate state changes, not everything.
+
+5. One icon language
+Use custom SVG/professional vector icons with consistent stroke weight,
+optical size and corner treatment.
+
+6. Typography first
+Typography and spacing establish hierarchy before color.
+
+7. Tactile polish
+Use short, contextual haptics and sounds.
+
+8. No cheap AI aesthetic
+Avoid:
+- emoji icons
+- meaningless charts
+- random gradients
+- repeated generic cards
+- excessive shadows
+- excessive glassmorphism
+
+SUGGESTED TOKENS
+- Spacing: 4-point base / 8-point rhythm.
+- Radius: 8, 12, 16, 24.
+- Primary: indigo-violet family.
+- Secondary: teal family.
+- Text: deep blue-black.
+- Muted: slate.
+- Touch targets: generally 44–48 pt.
+- Motion: roughly 150–450 ms depending on interaction.
+
+============================================================
+3. TECHNOLOGY STACK
+============================================================
+
+Mobile:
+React Native + TypeScript
+
+Development:
+Expo development builds with native access.
+
+Server state:
+TanStack Query
+
+Local state:
+Zustand
+
+Forms:
+React Hook Form + Zod
+
+Database:
+Supabase PostgreSQL
+
+Authentication:
+Supabase Auth + Google
+
+Realtime:
+Supabase Realtime
+
+Storage:
+Supabase Storage
+
+Backend:
+Supabase Edge Functions
+
+Security:
+Supabase Row Level Security
+
+Maps:
+MapLibre Native
+
+Map data:
+OpenStreetMap
+
+Prototype vector tiles:
+OpenFreeMap
+
+Routing / ETA / map matching:
+Valhalla
+
+Location:
+Native Android/iOS location APIs
+
+Push:
+FCM + APNs
+
+Animation:
+React Native Reanimated
+
+Gestures:
+React Native Gesture Handler
+
+Monitoring:
+Sentry
+
+Testing:
+Jest + React Native Testing Library + E2E
+
+Version control:
+Git + GitHub
+
+CI/CD:
+GitHub Actions
+
+ARCHITECTURE DECISION
+Use a modular monolith for V1.
+
+Do not initially add:
+- Redis
+- Kafka
+- Kubernetes
+- service mesh
+- microservices
+- GraphQL
+- Elasticsearch
+- multiple databases
+- dedicated chat server
+
+Add infrastructure only after measurement proves a real need.
+
+EXPO NOTE
+Because the product needs background location, MapLibre, native notifications,
+battery optimization and potentially native modules, do not force it to remain
+a pure Expo-managed application. Use Expo development builds/prebuild while
+retaining native access.
+
+============================================================
+4. CORE DOMAIN MODEL
+============================================================
+
+USER / PROFILE
+- immutable UUID user_id
+- unique username
+- display name
+- profile picture
+- DOB
+- bio
+
+FRIENDSHIP
+- user to user relationship
+- pending
+- accepted
+- declined
+- cancelled
+- blocked
+
+GROUP
+- identity
+- purpose
+- owner
+- members
+- roles
+- enabled modules
+- starts_at
+- expires_at
+- lifecycle state
+- content
+
+MODULE
+Examples:
+- chat
+- tasks
+- files
+- events
+- polls
+- calendar
+- reminders
+- location
+- maps
+- routing
+- ETA
+- expenses
+- progress
+
+OTHER CORE ENTITIES
+- messages
+- tasks
+- events
+- polls
+- files
+- location sessions
+- current locations
+- notifications
+- audit logs
+
+============================================================
+5. HOMEPAGE — PREMIUM COMMAND CENTER
+============================================================
+
+The homepage should NOT be an enterprise analytics dashboard.
+
+It is a personal command center.
+
+It must answer:
+1. What is active?
+2. What needs me?
+3. What happens next?
+
+HEADER
+- compact profile avatar
+- greeting
+- day/context
+- subtle activity indicator
+
+ACTIVE PURPOSE RAIL
+Group cards should show:
+- purpose mark / group image
+- group name
+- purpose
+- member count
+- next event
+- remaining lifecycle
+- contextual action
+
+Example:
+Chennai Outing
+Outing
+5 people
+Tomorrow 11:00 AM
+3h 18m remaining
+
+ATTENTION RAIL
+Show only actionable information:
+- friend request
+- task assignment
+- deadline
+- event reminder
+- group expiry
+- member arrival
+- message mention
+
+PEOPLE RAIL
+Relevant friends and collaborators.
+Do not make it an infinite social feed.
+
+CREATE ACTION
+A distinctive but restrained action that opens group creation.
+
+BOTTOM NAVIGATION
+- Home
+- Friends
+- Create
+- Activity
+- Profile
+
+SIZING
+- horizontal padding: 16–20 pt
+- avatars: 36–44 pt
+- primary touch targets: 48–56 pt
+- section spacing: 20–28 pt
+- metadata: 11–13 pt
+- primary titles: 20–28 pt
+- bottom navigation: approximately 72–84 pt including safe area
+
+AVOID
+- huge greeting
+- five identical cards
+- random gradients
+- meaningless charts
+- emoji icons
+- infinite social feed
+- badge everywhere
+
+The homepage should visually communicate:
+ACTIVE PURPOSES + URGENCY + NEXT ACTION + PEOPLE.
+
+============================================================
+6. PROFILE — PREMIUM SOCIAL IDENTITY
+============================================================
+
+The profile should feel like a mature premium social identity without becoming
+a vanity feed.
+
+PROFILE HERO
+- large avatar
+- display name
+- exact username
+- concise bio
+
+RELATIONSHIP ROW
+- friends count
+- mutual friends
+- relationship state
+
+SELF PROFILE
+- Friends
+- Groups
+- Active
+
+OTHER PROFILE
+- Add Friend
+- Pending
+- Friends
+- Block
+
+PROFILE SETTINGS
+- privacy
+- notifications
+- sound
+- haptics
+- location permissions
+- blocked users
+- account security
+- data controls
+
+Do not expose private group content on a public profile.
+
+============================================================
+7. EXACT USERNAME SEARCH
+============================================================
+
+Search must be exact.
+
+Searching:
+@dhin
+
+must NOT return:
+@dhinesh
+
+Searching:
+@dhinesh
+
+returns the exact profile.
+
+Internal identity:
+- user_id = immutable UUID
+- username = unique public identifier
+
+Normalize usernames consistently and rate-limit search to reduce enumeration.
+
+============================================================
+8. FRIEND SYSTEM
+============================================================
+
+STATES
+
+No relationship:
+Add Friend
+
+Request sent:
+Pending / Cancel
+
+Request received:
+Accept / Decline
+
+Friends:
+Friends / Remove
+
+Blocked:
+Blocked; interaction disabled
+
+HARD RULE
+
+A person can only be added/invited to a group if they are already friends.
+
+This must be enforced server-side.
+
+Backend checks:
+- authenticated requester
+- target exists
+- friendship exists
+- friendship accepted
+- target not already a member
+- group accepts members
+- inviter has permission
+
+A malicious client must not be able to bypass this.
+
+============================================================
+9. GROUP CREATION
+============================================================
+
+Creation should feel like setting up a temporary world, not filling a long form.
+
+FLOW
+1. Create Group
+2. Identity
+3. Name
+4. Description
+5. Group image
+6. Purpose
+7. Duration
+8. Friends
+9. Features/modules
+10. Review
+11. Create
+12. Enter group
+
+PURPOSES
+- Birthday
+- Project
+- Hackathon
+- Outing
+- Trip
+- Study
+- Sports
+- Event
+- Custom
+
+ROLES
+
+OWNER
+- configure group
+- manage members
+- manage modules
+- lifecycle
+- ownership
+
+ADMIN
+- delegated management
+
+MEMBER
+- use enabled modules
+- communicate
+- tasks
+- files
+- location when enabled
+
+============================================================
+10. PREMIUM DURATION SELECTOR
+============================================================
+
+Signature UI interaction.
+
+Modes:
+- MONTHS: 1–12
+- DAYS: 1–31
+- HOURS: 1–24
+
+Zero is valid.
+
+Examples:
+0 months + 0 days + 5 hours = 5-hour group
+1 month + 12 days + 6 hours = 1 month 12 days 6 hours
+
+Interaction:
+- circular dial
+- rotate/drag
+- snap points
+- momentum
+- inertia
+- spring settling
+- subtle overshoot
+
+HAPTICS
+- small tick per value
+- stronger confirmation on settle
+
+SOUND
+- short mechanical tick during rotation
+- confirmation tone on settle
+- subtle mode transition sound
+
+Accessibility:
+- stepper controls
+- screen reader labels
+- direct accessible values
+
+Backend:
+UI edits duration components.
+Backend stores:
+- starts_at
+- expires_at
+
+Backend owns expiry.
+
+Never trust the device clock for authorization.
+
+============================================================
+11. GROUP INTERIOR
+============================================================
+
+HEADER
+- identity
+- purpose
+- members
+- lifecycle
+- settings
+
+PURPOSE SUMMARY
+- next event
+- next task
+- countdown
+- destination
+- progress
+
+MODULE NAVIGATION
+Only enabled modules are shown.
+
+PROJECT:
+- overview
+- chat
+- tasks
+- files
+- events
+
+OUTING:
+- overview
+- chat
+- event
+- map
+- live location
+
+HACKATHON:
+- overview
+- chat
+- tasks
+- files
+- countdown
+- progress
+
+CUSTOM:
+Only selected modules.
+
+============================================================
+12. COLLABORATION MODULES
+============================================================
+
+CHAT
+- text
+- replies
+- mentions
+- attachments
+- reactions
+- timestamps
+- read state
+
+TASKS
+Fields:
+- task_id
+- group_id
+- creator_id
+- title
+- description
+- deadline
+- priority
+- status
+- created_at
+- updated_at
+
+Status:
+- Not Started
+- In Progress
+- Blocked
+- Completed
+
+Priority:
+- Low
+- Medium
+- High
+- Critical
+
+Multiple assignees:
+task_assignees(task_id, user_id)
+
+FILES
+Supported:
+- PDF
+- images
+- videos
+- documents
+- spreadsheets
+
+PostgreSQL stores metadata.
+Object storage stores binary content.
+
+EVENTS
+- event_id
+- group_id
+- title
+- starts_at
+- ends_at
+- location
+- description
+
+Can drive:
+- countdown
+- reminders
+- calendar
+- location
+- notifications
+
+POLLS
+- poll
+- poll_options
+- poll_votes
+- expiration
+
+Use cases:
+- restaurant
+- destination
+- time
+- project decision
+- trip decision
+
+============================================================
+13. OUTING / MEETUP EXPERIENCE
+============================================================
+
+Example:
+Group: Chennai Outing
+Destination: Anna Nagar Tower Park
+Time: tomorrow 11:00 AM
+Members: 5
+
+Before meeting:
+- destination
+- time
+- confirmation
+- location sharing status
+- travel information
+
+During:
+- location
+- distance
+- ETA
+- movement state
+- arrival state
+
+Example:
+Arun — 1.2 km — 6 min — Moving
+Priya — 800 m — 5 min — Walking
+Dhinesh — 3.4 km — 12 min — Driving
+Karthik — 200 m — 2 min — Near destination
+Rahul — 0 m — Arrived
+
+This must be presented as a premium coordination interface.
+
+============================================================
+14. MAP STACK
+============================================================
+
+MapLibre Native:
+Map rendering.
+
+OpenStreetMap:
+Geographic source data.
+
+OpenFreeMap:
+Prototype vector tiles.
+
+Valhalla:
+- routing
+- ETA
+- map matching
+- route geometry
+
+Native location APIs:
+- GPS
+- permissions
+- background location
+
+Supabase:
+- authorization
+- session state
+- controlled realtime
+
+IMPORTANT LICENSING NOTE
+
+OpenStreetMap is open but not license-free.
+Attribution and ODbL obligations apply.
+
+Public tile servers should not be treated as unlimited production APIs.
+
+This stack is appropriate for the experimental stage.
+Commercial-scale infrastructure should be reviewed later.
+
+============================================================
+15. MAP MATCHING
+============================================================
+
+Raw GPS may drift or jump.
+
+Pipeline:
+Raw GPS
+→ Valhalla map matching
+→ road-aligned position
+→ smoother route visualization
+→ better ETA
+
+Do not call routing for every raw GPS point.
+
+Use meaningful movement thresholds.
+
+============================================================
+16. LOCATION PRIVACY
+============================================================
+
+Location must be:
+- opt-in
+- group-scoped
+- temporary
+- permission-controlled
+- session-based
+
+LOCATION_SESSION
+- session_id
+- group_id
+- user_id
+- starts_at
+- ends_at
+- destination
+- status
+
+CURRENT_LOCATION
+- user_id
+- latitude
+- longitude
+- accuracy
+- speed
+- heading
+- timestamp
+
+Do not permanently store every GPS point by default.
+
+Stop tracking when:
+- user stops sharing
+- session ends
+- group expires
+
+============================================================
+17. BATTERY OPTIMIZATION
+============================================================
+
+Battery is a product requirement.
+
+Never:
+- poll GPS every second by default
+- transmit every GPS coordinate
+- call routing for every point
+- keep every GPS point in React state
+- continue after arrival
+- continue after expiry
+
+ADAPTIVE STRATEGY
+
+Stationary:
+Very low frequency and suppress unchanged updates.
+
+Walking:
+Moderate cadence plus movement threshold.
+
+Driving:
+Adaptive speed/relevance-aware cadence.
+
+Far from destination:
+Normal cadence.
+
+Approaching:
+Increase relevance only if needed.
+
+Near destination:
+Short high-relevance burst if required.
+
+Arrived:
+Stop tracking.
+
+RULES
+1. Distance thresholds.
+2. Time thresholds.
+3. Movement detection.
+4. Lower accuracy when possible.
+5. Suppress duplicate coordinates.
+6. Throttle network updates.
+7. Separate GPS sampling from network transmission.
+8. Native background location services.
+9. Respect Android background restrictions.
+10. Respect iOS background restrictions.
+11. Stop on session end.
+12. Stop on group expiry.
+13. Measure real battery use.
+
+LOCATION PIPELINE
+
+Native GPS
+→ local movement filter
+→ active session validation
+→ meaningful update
+→ backend current-location state
+→ controlled realtime subscribers
+→ UI
+
+Routing is a separate path.
+
+============================================================
+18. REALTIME
+============================================================
+
+Messages:
+Supabase Realtime, persistent.
+
+Membership:
+Database changes + query invalidation.
+
+Friend requests:
+Database changes + notifications.
+
+Tasks:
+Database changes.
+
+Presence:
+Ephemeral.
+
+Current location:
+Controlled realtime and temporary.
+
+Lifecycle:
+Server timestamps and lifecycle evaluation.
+
+Notifications:
+Persistent notification record + push.
+
+Presence is NOT location.
+
+Presence:
+- online
+- offline
+- recently active
+
+Location:
+- geographic position
+
+============================================================
+19. LIFECYCLE
+============================================================
+
+States:
+
+CREATED
+ACTIVE
+EXPIRING
+EXPIRED
+ARCHIVED
+PURGED
+
+CREATED:
+Configured but not active.
+
+ACTIVE:
+Normal group.
+
+EXPIRING:
+Near end.
+
+EXPIRED:
+Active functionality stops.
+
+ARCHIVED:
+Historical read-only according to policy.
+
+PURGED:
+Removed according to retention policy.
+
+SERVER-OWNED EXPIRY
+
+Client countdown is visual only.
+Backend compares current time with expires_at.
+
+EXPIRATION
+1. Reminder.
+2. Reject new active operations.
+3. Terminate location.
+4. Mark EXPIRED.
+5. Archive after retention.
+6. Purge according to policy.
+
+============================================================
+20. SUPABASE DATABASE SCHEMA
+============================================================
+
+profiles
+- user_id PK/FK auth.users
+- username UNIQUE
+- display_name
+- avatar_path
+- dob
+- bio
+- created_at
+- updated_at
+
+user_devices
+- device_id PK
+- user_id
+- platform
+- push_token
+- last_seen_at
+- created_at
+
+friend_requests
+- id PK
+- sender_id
+- receiver_id
+- status
+- created_at
+- responded_at
+
+friendships
+- id PK
+- user_low_id
+- user_high_id
+- created_at
+- unique unordered pair
+
+blocks
+- id PK
+- blocker_id
+- blocked_id
+- created_at
+
+groups
+- id PK
+- owner_id
+- name
+- description
+- image_path
+- purpose
+- starts_at
+- expires_at
+- lifecycle_state
+- created_at
+- updated_at
+
+group_members
+- group_id
+- user_id
+- role
+- joined_at
+- left_at
+- composite PK
+
+group_features
+- group_id
+- feature_key
+- enabled_at
+- enabled_by
+- composite PK
+
+messages
+- id
+- group_id
+- sender_id
+- body
+- reply_to_id
+- created_at
+- edited_at
+- deleted_at
+
+message_attachments
+- id
+- message_id
+- file_id
+
+tasks
+- id
+- group_id
+- creator_id
+- title
+- description
+- deadline
+- priority
+- status
+- created_at
+- updated_at
+
+task_assignees
+- task_id
+- user_id
+
+events
+- id
+- group_id
+- title
+- starts_at
+- ends_at
+- location_text
+- latitude
+- longitude
+- description
+
+polls
+- id
+- group_id
+- creator_id
+- question
+- expires_at
+- created_at
+
+poll_options
+- id
+- poll_id
+- option_text
+- sort_order
+
+poll_votes
+- poll_id
+- option_id
+- user_id
+- created_at
+
+files
+- id
+- group_id
+- owner_id
+- filename
+- mime_type
+- size_bytes
+- storage_path
+- created_at
+
+location_sessions
+- id
+- group_id
+- user_id
+- starts_at
+- ends_at
+- destination_lat
+- destination_lng
+- status
+
+current_locations
+- session_id PK
+- user_id
+- latitude
+- longitude
+- accuracy
+- speed
+- heading
+- recorded_at
+
+notifications
+- id
+- user_id
+- type
+- actor_id
+- group_id
+- payload_json
+- read_at
+- created_at
+
+audit_logs
+- id
+- actor_id
+- action
+- resource_type
+- resource_id
+- metadata_json
+- created_at
+
+============================================================
+21. CONSTRAINTS AND INDEXES
+============================================================
+
+CONSTRAINTS
+- normalized username UNIQUE
+- unordered friendship UNIQUE
+- group_members UNIQUE
+- task_assignees UNIQUE
+- poll vote constraints
+- expires_at > starts_at
+- valid location session interval
+- deliberate foreign-key deletion behavior
+
+INDEXES
+profiles(username)
+friend_requests(receiver_id,status)
+friendships(user_low_id,user_high_id)
+group_members(user_id)
+group_members(group_id)
+messages(group_id,created_at)
+tasks(group_id,status,deadline)
+notifications(user_id,read_at,created_at)
+groups(expires_at,lifecycle_state)
+current_locations(session_id,recorded_at)
+
+============================================================
+22. RLS / SECURITY
+============================================================
+
+RLS is mandatory.
+
+Sensitive operations must verify:
+- authenticated user
+- membership
+- role
+- module permission
+- lifecycle state
+
+Location additionally verifies:
+- active session
+- location module
+- group membership
+- viewing permission
+
+UI hiding is not security.
+
+============================================================
+23. STORAGE
+============================================================
+
+Buckets:
+
+avatars
+- profile images
+
+group-media
+- group images/media
+
+attachments
+- documents and message files
+
+temporary-uploads
+- transient processing
+
+Access should be controlled by:
+- authentication
+- ownership
+- group membership
+- module permission
+- private/signed access where appropriate
+
+============================================================
+24. EDGE FUNCTIONS
+============================================================
+
+create-group
+invite-member
+send-notification
+location-update
+route-request
+lifecycle-worker
+purge-worker
+username-search
+
+SERVER RULES
+- Cannot add non-friend.
+- Cannot add duplicate member.
+- Cannot mutate expired group.
+- Cannot start unauthorized location session.
+- Cannot read another group's location.
+- Cannot modify owner-only settings as member.
+- Cannot upload after expiry.
+
+============================================================
+25. NOTIFICATIONS
+============================================================
+
+Events:
+- friend request
+- friend accepted
+- group invitation
+- task assignment
+- deadline
+- message mention
+- event reminder
+- meeting approaching
+- member arrived
+- group expiring
+- group expired
+
+Flow:
+Backend event
+→ notification record
+→ in-app realtime
+→ FCM/APNs when appropriate
+
+Notifications should be deduplicated, rate-limited and contextual.
+
+============================================================
+26. COMPLETE UI INVENTORY
+============================================================
+
+AUTH
+- splash
+- Google sign-in
+- profile setup
+- username creation
+
+HOME
+- home
+- active groups
+- attention
+- activity
+
+FRIENDS
+- search
+- friend list
+- requests
+- profile
+- mutuals
+- blocked users
+
+CREATE
+- identity
+- purpose
+- duration
+- friends
+- modules
+- review
+- creation success
+
+GROUP
+- overview
+- chat
+- tasks
+- files
+- events
+- polls
+- members
+- settings
+
+OUTING
+- event
+- map
+- live board
+- location permission
+
+PROFILE
+- hero
+- edit
+- privacy
+- notifications
+- sound
+- haptics
+
+LIFECYCLE
+- expiring
+- expired
+- archive
+
+SYSTEM
+- loading
+- empty
+- error
+- offline
+- permission education
+
+SAFETY
+- block
+- report
+- data controls
+
+============================================================
+27. SCREEN STATES
+============================================================
+
+Every main screen must support:
+
+LOADING
+Use skeletons or purposeful progress.
+
+EMPTY
+Explain why and show the next action.
+
+ERROR
+Explain the problem and provide recovery.
+
+OFFLINE
+Clearly separate cached/local information from actions requiring connectivity.
+
+============================================================
+28. MOTION / SOUND / HAPTICS
+============================================================
+
+CREATE GROUP
+Spatial step transition.
+
+DURATION
+Inertia + snap + spring.
+
+TASK COMPLETE
+Checkmark draw + subtle row compression.
+
+MEMBER JOINS
+Avatar enters naturally.
+
+LOCATION STARTS
+Map layer activates smoothly.
+
+MARKER MOVEMENT
+Interpolate, do not teleport.
+
+MEMBER ARRIVES
+Arrival transition + board reorder.
+
+GROUP EXPIRES
+Calm transition into archive.
+
+Do not animate everything.
+
+Sound:
+- optional
+- short
+- contextual
+- premium
+
+Haptics:
+- optional
+- subtle
+- never repetitive for GPS
+
+============================================================
+29. ACCESSIBILITY
+============================================================
+
+- 44–48 pt touch targets.
+- Dynamic text.
+- Screen-reader labels.
+- Accessible duration controls.
+- Reduced motion support.
+- Do not communicate state through color alone.
+- Textual arrival information alongside maps.
+- Respect system sound/haptic settings.
+- Maintain contrast.
+
+============================================================
+30. PERFORMANCE
+============================================================
+
+Use:
+- virtualized lists
+- pagination
+- memoization
+- TanStack Query caching
+- lazy loading
+- image compression
+- native background location
+- throttled map camera
+- minimal global state updates
+
+Avoid:
+- all GPS points in React state
+- loading entire chat history
+- unnecessary refetching
+- loading every module on startup
+
+============================================================
+31. BATTERY TEST PLAN
+============================================================
+
+Stationary 30 min:
+- battery
+- CPU
+- network
+- GPS update rate
+
+Walking 30 min:
+- battery
+- smoothness
+- update rate
+
+Driving 60 min:
+- battery
+- ETA stability
+- network
+
+Five-member outing:
+- realtime latency
+- map smoothness
+- marker smoothness
+
+Poor network:
+- retry
+- offline
+- recovery
+
+Expiry:
+- lifecycle correctness
+- location shutdown
+- write rejection
+
+Cold start:
+- time to interactive
+
+Large chat:
+- FPS
+- memory
+- pagination
+
+============================================================
+32. BUILD STRATEGY
+============================================================
+
+Phase 0:
+Architecture + design system + DB/RLS.
+
+Phase 1:
+Map/location technical spike.
+
+Phase 2:
+Identity.
+
+Phase 3:
+Social graph.
+
+Phase 4:
+Group foundation.
+
+Phase 5:
+Realtime.
+
+Phase 6:
+Collaboration modules.
+
+Phase 7:
+Location experience.
+
+Phase 8:
+Premium polish.
+
+Phase 9:
+Hardening.
+
+FIRST PROTOTYPE
+
+Create a five-person outing.
+Select destination.
+Enable location.
+Render members.
+Route through Valhalla.
+Show ETA.
+Show movement.
+Show arrival.
+Stop tracking.
+Measure battery on a real device.
+
+============================================================
+33. CODEBASE STRUCTURE
+============================================================
+
+src/app
+- navigation
+- app entry
+
+src/features/auth
+src/features/profile
+src/features/friends
+src/features/groups
+src/features/chat
+src/features/tasks
+src/features/files
+src/features/events
+src/features/polls
+src/features/location
+src/features/maps
+src/features/notifications
+
+src/components
+- shared components
+
+src/design
+- tokens
+- typography
+- icons
+- motion
+
+src/lib
+- Supabase
+- API helpers
+
+src/state
+- Zustand
+
+supabase/migrations
+- SQL
+- RLS
+
+supabase/functions
+- Edge Functions
+
+tests
+- unit
+- integration
+- E2E
+
+Each purpose module should define:
+- feature key
+- database objects
+- permissions
+- routes
+- notification events
+- lifecycle behavior
+- realtime subscriptions
+
+============================================================
+34. PURPOSE-SPECIFIC UI
+============================================================
+
+BIRTHDAY
+Hero: countdown + event
+Primary: plan/poll/share
+Supporting: chat/photos/reminders
+
+PROJECT
+Hero: progress + deadline
+Primary: tasks
+Supporting: chat/files/calendar
+
+HACKATHON
+Hero: countdown + progress
+Primary: tasks
+Supporting: chat/files
+
+OUTING
+Hero: destination + ETA
+Primary: live map
+Supporting: chat/event/location
+
+TRIP
+Hero: next itinerary item
+Primary: itinerary
+Supporting: map/expenses/files/polls
+
+STUDY
+Hero: next session/deadline
+Primary: task/session
+Supporting: chat/files/polls
+
+SPORTS
+Hero: next match/event
+Primary: event
+Supporting: roster/progress
+
+EVENT
+Hero: next scheduled moment
+Primary: event
+Supporting: chat/files/polls
+
+CUSTOM
+Hero: user-defined
+Primary: selected action
+Supporting: selected modules
+
+============================================================
+35. CRITICAL DATA FLOWS
+============================================================
+
+CREATE GROUP
+Client validation
+→ authenticated Edge Function
+→ validate owner
+→ validate friends
+→ validate duration
+→ create group
+→ create membership
+→ create feature rows
+→ return
+→ navigate
+→ realtime subscriptions
+
+SEND MESSAGE
+Authenticated insert
+→ RLS membership check
+→ database insert
+→ realtime
+→ cache update
+→ notification if relevant
+
+START LOCATION
+OS permission
+→ location session
+→ server validation
+→ native service
+→ movement filter
+→ meaningful update
+→ backend state
+→ realtime
+
+EXPIRE GROUP
+Lifecycle worker
+→ expiry detected
+→ active operations stop
+→ location sessions stop
+→ EXPIRED
+→ notify
+→ archive/purge
+
+============================================================
+36. EDGE CASES
+============================================================
+
+Design explicitly for:
+- internet loss during creation
+- friend accepts while picker is open
+- friend blocks owner
+- owner account removal
+- expiry while composing
+- location permission revoked
+- low-power mode
+- Valhalla unavailable
+- map unavailable
+- realtime available while map unavailable
+- concurrent admin edits
+- task edit/completion race
+- push arriving after expiry
+- new device
+- interrupted file upload
+- username changes
+- incorrect device clock
+- long background period
+- no optional modules
+- network changes
+
+Every edge case needs:
+- deterministic state
+- user-visible explanation
+- recovery path
+
+============================================================
+37. ROADMAP
+============================================================
+
+FOUNDATION
+Repo, CI, tokens, Supabase, migrations, RLS, navigation.
+
+IDENTITY
+Google auth, profile, username, exact search, device registration.
+
+SOCIAL
+Requests, friendship, block.
+
+GROUPS
+Creation, purpose, duration, roles, modules.
+
+REALTIME
+Chat, presence, notifications.
+
+COLLABORATION
+Tasks, files, events, polls.
+
+MAPS
+MapLibre, tiles, markers, destination, routes.
+
+LOCATION
+Sessions, adaptive tracking, map matching, ETA, arrival.
+
+LIFECYCLE
+Expiry, archive, purge.
+
+POLISH
+Motion, sound, haptics, custom icons.
+
+HARDENING
+Battery, security, offline, network, E2E.
+
+============================================================
+38. DEFINITION OF DONE
+============================================================
+
+V1 is not complete until:
+1. Every server mutation is authorized.
+2. Friend-only membership cannot be bypassed.
+3. Expiry is server-controlled.
+4. Location stops reliably.
+5. Battery is measured on real devices.
+6. Core realtime works without manual refresh.
+7. Main screens support loading/empty/error/offline.
+8. No emoji UI remains.
+9. Visual language is consistent.
+10. Poor-network behavior is graceful.
+11. Accessibility alternatives exist.
+12. Security rules are tested.
+13. Location privacy is tested.
+14. Lifecycle transitions are tested.
+15. Large lists are virtualized/paginated.
+16. Files use controlled storage.
+
+============================================================
+39. FINAL NORTH STAR
+============================================================
+
+The application should feel like a temporary world that comes alive around a
+purpose.
+
+For an outing:
+people, destination, time, route, ETA and arrival state become one coherent
+experience without turning location into permanent surveillance.
+
+For a project:
+deadlines, tasks, files and communication share one context.
+
+For a birthday:
+memories, decisions, reminders and countdown become the central experience.
+
+The homepage should feel like a personal command center.
+
+The profile should feel like a premium social identity.
+
+The group should feel alive.
+
+The map should feel purpose-built.
+
+The duration dial should feel tactile.
+
+Notifications should feel useful rather than noisy.
+
+Location should feel temporary and respectful.
+
+Expiry should feel like a natural lifecycle event.
+
+The final quality test is not merely:
+“Does the feature work?”
+
+The real question is:
+Does every part communicate PURPOSE, TRUST, TIME, STATE and INTENTION
+with minimal friction?
+
+============================================================
+40. IMMEDIATE ENGINEERING SEQUENCE
+============================================================
+
+1. Create design system.
+2. Create Supabase schema.
+3. Create RLS.
+4. Build MapLibre + GPS + Valhalla prototype.
+5. Measure battery.
+6. Build authentication.
+7. Build profile.
+8. Build exact username search.
+9. Build friendship.
+10. Build group creation.
+11. Build duration dial.
+12. Enforce friend-only membership.
+13. Build lifecycle.
+14. Build realtime chat.
+15. Build tasks.
+16. Build files.
+17. Build events.
+18. Build polls.
+19. Build notifications.
+20. Build outing/location.
+21. Apply motion.
+22. Apply sound/haptics.
+23. Apply custom icons.
+24. Security testing.
+25. Battery testing.
+26. Network testing.
+27. Lifecycle testing.
+28. E2E testing.
+29. Final visual QA.
+
+============================================================
+41. V1 NON-NEGOTIABLE RULES
+============================================================
+
+1. Friendship comes before group membership.
+2. The group knows why it exists.
+3. Purpose changes tools and information hierarchy.
+4. Time is a first-class group property.
+5. Backend owns lifecycle state.
+6. Location is opt-in.
+7. Location is group-scoped.
+8. Location is temporary.
+9. Battery usage is optimized around meaningful movement.
+10. No raw GPS history by default.
+11. No emoji-based UI.
+12. Custom SVG/professional vector icons use one language.
+13. Animation communicates state.
+14. Sound and haptics are subtle and optional.
+15. RLS and server-side authorization are mandatory.
+16. UI is never the security boundary.
+17. Start as a modular monolith.
+18. Add infrastructure only when measurements justify it.
+19. Measure battery rather than assuming optimization.
+20. Build one coherent visual system rather than disconnected screens.
+
+============================================================
+42. MASTER STACK CHECKLIST
+============================================================
+
+Mobile:
+React Native + TypeScript
+
+Development:
+Expo development builds / native access
+
+Backend:
+Supabase Edge Functions
+
+Database:
+Supabase PostgreSQL
+
+Authentication:
+Supabase Auth + Google
+
+Realtime:
+Supabase Realtime
+
+Storage:
+Supabase Storage
+
+Security:
+RLS + server validation
+
+State:
+Zustand + TanStack Query
+
+Forms:
+React Hook Form + Zod
+
+Maps:
+MapLibre Native
+
+Map data:
+OpenStreetMap
+
+Prototype tiles:
+OpenFreeMap
+
+Routing:
+Valhalla
+
+Location:
+Native OS APIs
+
+Push:
+FCM + APNs
+
+Motion:
+Reanimated + Gesture Handler
+
+Monitoring:
+Sentry
+
+Testing:
+Jest + React Native Testing Library + E2E
+
+CI/CD:
+GitHub Actions
+
+============================================================
+NEXT ENGINEERING ARTIFACT
+============================================================
+
+The next implementation document should contain the exact Supabase SQL migration
+set:
+
+- every table
+- every column
+- every PostgreSQL type
+- every primary key
+- every foreign key
+- every unique constraint
+- every check constraint
+- every index
+- every trigger
+- every function
+- every RLS policy
+- realtime publication configuration
+- storage buckets
+- storage policies
+- lifecycle functions
+- expiration worker
+- friend-only group invitation enforcement
+- location privacy enforcement
+
+After that, produce the screen-by-screen component specification:
+
+- every screen
+- every component
+- exact hierarchy
+- responsive sizing
+- states
+- navigation
+- animations
+- haptics
+- sounds
+- accessibility
+- API/query dependencies
+
+END OF MASTER BLUEPRINT

@@ -1,0 +1,73 @@
+# Node & Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json.bak
+
+# Environment Variables & Secrets (CRITICAL)
+.env
+.env*.local
+.env.production
+.env.staging
+*.pem
+*.key
+*.p8
+*.p12
+*service_role*
+*service-role*
+*secret*
+serviceAccountKey.json
+google-services.json
+GoogleService-Info.plist
+
+# Expo & Metro
+.expo/
+.expo-shared/
+dist/
+web-build/
+metro-cache/
+
+# React Native & Native Build Artifacts
+android/
+ios/
+*.orig.*
+*.jks
+*.keystore
+*.apk
+*.aab
+*.ipa
+*.app
+*.dSYM/
+
+# Supabase Local
+.supabase/
+supabase/.temp/
+
+# Testing & Coverage
+coverage/
+*.lcov
+.nyc_output/
+junit.xml
+
+# IDE & OS Files
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+*.swp
+*.swo
+*~
+
+# Temporary & Cache
+tmp/
+temp/
+*.log
+.eslintcache
+.turbo/
