@@ -14,9 +14,21 @@ export type MainTabParamList = {
 };
 
 /**
+ * Authentication Native Stack Navigator parameter list
+ */
+export type AuthStackParamList = {
+  Login: undefined;
+  Onboarding: undefined;
+};
+
+export type AuthStackScreenProps<T extends keyof AuthStackParamList> =
+  NativeStackScreenProps<AuthStackParamList, T>;
+
+/**
  * Root Native Stack Navigator parameter list
  */
 export type RootStackParamList = {
+  Auth: NavigatorScreenParams<AuthStackParamList>;
   MainTabs: NavigatorScreenParams<MainTabParamList>;
   GroupDetail: { groupId: string; groupName?: string };
 };

@@ -34,6 +34,8 @@ export default [
         afterEach: 'readonly',
         beforeAll: 'readonly',
         afterAll: 'readonly',
+        Blob: 'readonly',
+        FormData: 'readonly',
       },
     },
     plugins: {
