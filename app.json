@@ -28,7 +28,14 @@
       "expo-dev-client",
       "expo-secure-store",
       "expo-web-browser",
-      "@maplibre/maplibre-react-native"
+      "@maplibre/maplibre-react-native",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#00FF9D"
+        }
+      ]
     ]
   }
 }

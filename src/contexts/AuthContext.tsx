@@ -14,6 +14,7 @@ import type {
   Profile,
   ProfileUpdate,
 } from '../types/auth';
+import { pushNotificationClient } from '../features/notifications/services/pushNotificationClient';
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -107,6 +108,15 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
       const needsOnboarding = checkNeedsOnboarding(userProfile);
       setStatus(needsOnboarding ? 'NEEDS_ONBOARDING' : 'AUTHENTICATED');
       setIsLoading(false);
+
+      // Asynchronously register push notifications for authenticated user
+      pushNotificationClient
+        .registerForPushNotificationsAsync(currentSession.user.id)
+        .catch((pushErr) => {
+          if (__DEV__) {
+            console.warn('[AuthProvider] Push registration skipped or failed:', pushErr);
+          }
+        });
     },
     [fetchProfile],
   );
@@ -177,6 +187,9 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
   const signOut = useCallback(async (): Promise<void> => {
     setIsLoading(true);
     try {
+      if (user?.id) {
+        await pushNotificationClient.unregisterPushNotificationsAsync(user.id).catch(() => {});
+      }
       const { error: signOutError } = await supabase.auth.signOut();
       if (signOutError) throw signOutError;
     } catch (err) {
