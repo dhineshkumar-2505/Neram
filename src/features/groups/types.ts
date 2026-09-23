@@ -268,3 +268,96 @@ export const PURPOSE_METADATA: GroupPurposeMetadata[] = [
     defaultDuration: { months: 0, days: 0, hours: 12 },
   },
 ];
+
+export interface GroupMemberWithProfile {
+  user_id: string;
+  role: GroupRole;
+  joined_at: string;
+  profile: {
+    user_id: string;
+    username: string;
+    display_name: string;
+    avatar_path: string | null;
+  } | null;
+}
+
+export interface GroupDetailedRecord extends GroupRecord {
+  members: GroupMemberWithProfile[];
+  features: { feature_key: string; enabled_at: string }[];
+  currentUserRole: GroupRole | null;
+}
+
+export interface GroupRemainingTime {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+  totalRemainingSeconds: number;
+  isExpiring: boolean;
+  isExpired: boolean;
+  progressFraction: number;
+  formattedText: string;
+}
+
+/**
+ * Accurately calculates remaining time, progress fraction, and expiring status from timestamps.
+ */
+export function calculateGroupRemainingTime(
+  startsAt: string | Date,
+  expiresAt: string | Date,
+  now: Date = new Date(),
+): GroupRemainingTime {
+  const startMs = typeof startsAt === 'string' ? new Date(startsAt).getTime() : startsAt.getTime();
+  const expiryMs = typeof expiresAt === 'string' ? new Date(expiresAt).getTime() : expiresAt.getTime();
+  const nowMs = now.getTime();
+
+  const totalDurationMs = Math.max(1000, expiryMs - startMs);
+  const remainingMs = expiryMs - nowMs;
+
+  if (remainingMs <= 0) {
+    return {
+      days: 0,
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+      totalRemainingSeconds: 0,
+      isExpiring: false,
+      isExpired: true,
+      progressFraction: 1.0,
+      formattedText: 'Space Expired',
+    };
+  }
+
+  const elapsedMs = Math.max(0, nowMs - startMs);
+  const progressFraction = Math.min(1.0, Math.max(0.0, elapsedMs / totalDurationMs));
+
+  const totalRemainingSeconds = Math.floor(remainingMs / 1000);
+  const days = Math.floor(totalRemainingSeconds / 86400);
+  const hours = Math.floor((totalRemainingSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalRemainingSeconds % 3600) / 60);
+  const seconds = totalRemainingSeconds % 60;
+
+  // Expiring flag: 1 hour or less remaining, or less than 10% of lifespan left
+  const isExpiring = totalRemainingSeconds <= 3600 || progressFraction >= 0.9;
+
+  let formattedText: string;
+  if (days > 0) {
+    formattedText = `${days}d ${hours}h ${minutes}m`;
+  } else if (hours > 0) {
+    formattedText = `${hours}h ${minutes}m ${seconds}s`;
+  } else {
+    formattedText = `${minutes}m ${seconds}s`;
+  }
+
+  return {
+    days,
+    hours,
+    minutes,
+    seconds,
+    totalRemainingSeconds,
+    isExpiring,
+    isExpired: false,
+    progressFraction,
+    formattedText,
+  };
+}

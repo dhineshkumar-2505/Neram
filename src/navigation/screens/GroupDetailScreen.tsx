@@ -1,58 +1,191 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Screen, Text, Card, Button } from '../../components';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
+import { Screen, Text, LoadingState, ErrorState, Button } from '../../components';
 import { tokens } from '../../design';
+import { useAuth } from '../../hooks/useAuth';
+import {
+  groupService,
+  GroupDetailedRecord,
+  useGroupLifecycle,
+  GroupHeroCard,
+  GroupMemberRoster,
+  GroupModuleHub,
+} from '../../features/groups';
 import type { RootStackScreenProps } from '../types';
 
 export const GroupDetailScreen: React.FC<RootStackScreenProps<'GroupDetail'>> = ({
   route,
   navigation,
 }) => {
-  const { groupId, groupName } = route.params;
+  const { groupId, groupName: initialName } = route.params;
+  const { user } = useAuth();
 
-  return (
-    <Screen contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <Text variant="title1" weight="bold">
-          {groupName || 'Temporary Space'}
-        </Text>
-        <Text variant="caption" color="secondary">
-          ID: {groupId}
-        </Text>
-      </View>
+  const [group, setGroup] = useState<GroupDetailedRecord | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-      <Card variant="elevated" style={styles.card}>
-        <Text variant="title3" weight="semibold" style={styles.cardTitle}>
-          Group Shell Active
-        </Text>
-        <Text variant="body" color="secondary" style={styles.cardBody}>
-          Dynamic purpose modules (Chat, Tasks, Files, Events, Polls, Location) will activate according to group configuration in Phases 4–7.
-        </Text>
+  const loadGroupData = useCallback(async () => {
+    setError(null);
+    const res = await groupService.fetchGroupDetails(groupId, user?.id);
+
+    if (res.error || !res.group) {
+      setError(res.error || 'Unable to load temporary space.');
+    } else {
+      setGroup(res.group);
+    }
+    setLoading(false);
+    setRefreshing(false);
+  }, [groupId, user?.id]);
+
+  useEffect(() => {
+    loadGroupData();
+  }, [loadGroupData]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadGroupData();
+  }, [loadGroupData]);
+
+  // Real-time lifecycle and countdown ticker hook
+  const { remainingTime, lifecycleState, isExpired } = useGroupLifecycle(
+    group?.starts_at,
+    group?.expires_at,
+    group?.lifecycle_state,
+  );
+
+  if (loading) {
+    return (
+      <Screen contentContainerStyle={styles.centerContainer}>
+        <LoadingState message="Entering temporary space..." />
+      </Screen>
+    );
+  }
+
+  if (error || !group) {
+    return (
+      <Screen contentContainerStyle={styles.centerContainer}>
+        <ErrorState
+          title="Space Inaccessible"
+          message={error || 'This temporary space could not be found or has been completely purged.'}
+          retryLabel="Retry Connection"
+          onRetry={loadGroupData}
+        />
         <Button
           title="Return to Command Center"
           variant="outline"
+          size="sm"
+          style={styles.returnButton}
           onPress={() => navigation.goBack()}
         />
-      </Card>
+      </Screen>
+    );
+  }
+
+  const spaceName = group.name || initialName || 'Temporary Space';
+
+  return (
+    <Screen scrollable={false} contentContainerStyle={styles.screenContainer}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#818CF8"
+            colors={['#818CF8']}
+          />
+        }
+      >
+        {/* Navigation / Top Meta */}
+        <View style={styles.header}>
+          <Text variant="caption" style={styles.spaceIdText}>
+            TEMPORARY SPACE • {group.purpose}
+          </Text>
+          <Text variant="title1" weight="bold" style={styles.titleText}>
+            {spaceName}
+          </Text>
+          {group.description ? (
+            <Text variant="body" style={styles.descriptionText}>
+              {group.description}
+            </Text>
+          ) : null}
+        </View>
+
+        {/* Hero Countdown & Archetype Card */}
+        <GroupHeroCard
+          group={group}
+          remainingTime={remainingTime}
+          lifecycleState={lifecycleState}
+        />
+
+        {/* Collaborative Modules Hub */}
+        <GroupModuleHub
+          enabledFeatures={group.features}
+          isExpired={isExpired}
+        />
+
+        {/* Member Roster Card */}
+        <GroupMemberRoster
+          members={group.members}
+          ownerId={group.owner_id}
+          currentUserRole={group.currentUserRole}
+          isExpired={isExpired}
+          onInvitePress={() => navigation.navigate('MainTabs', { screen: 'FriendsTab' })}
+        />
+
+        {/* Space Departure Action */}
+        <View style={styles.footerActions}>
+          <Button
+            title="Return to Command Center"
+            variant="outline"
+            onPress={() => navigation.goBack()}
+          />
+        </View>
+      </ScrollView>
     </Screen>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  screenContainer: {
+    backgroundColor: '#0B0F19',
+    padding: 0,
+  },
+  centerContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: tokens.spacing.lg,
+    backgroundColor: '#0B0F19',
+  },
+  scrollContent: {
     padding: tokens.spacing.md,
+    paddingBottom: tokens.spacing.xxl,
   },
   header: {
-    marginBottom: tokens.spacing.lg,
-  },
-  card: {
     marginBottom: tokens.spacing.md,
   },
-  cardTitle: {
-    marginBottom: tokens.spacing.xs,
+  spaceIdText: {
+    color: '#818CF8',
+    letterSpacing: 1,
+    marginBottom: 4,
   },
-  cardBody: {
-    marginBottom: tokens.spacing.md,
+  titleText: {
+    color: '#F8FAFC',
+    marginBottom: tokens.spacing.xxs,
+  },
+  descriptionText: {
+    color: '#94A3B8',
+    lineHeight: 20,
+    marginTop: tokens.spacing.xxs,
+  },
+  returnButton: {
+    marginTop: tokens.spacing.md,
+  },
+  footerActions: {
+    marginTop: tokens.spacing.md,
+    marginBottom: tokens.spacing.xl,
   },
 });
 

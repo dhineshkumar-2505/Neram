@@ -264,7 +264,16 @@ describe('groupService', () => {
       const res = await groupService.fetchGroupDetails('group_xyz');
 
       expect(res.error).toBeUndefined();
-      expect(res.group).toEqual(mockGroup);
+      expect(res.group).toEqual(
+        expect.objectContaining({
+          id: 'group_xyz',
+          owner_id: 'user_owner',
+          name: 'Target Group',
+          purpose: 'SPORTS',
+          members: [],
+          features: [],
+        }),
+      );
     });
 
     it('returns error if group does not exist', async () => {

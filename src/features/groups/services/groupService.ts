@@ -2,6 +2,8 @@ import { supabase } from '../../../lib/supabase';
 import {
   CreateGroupInput,
   GroupRecord,
+  GroupDetailedRecord,
+  GroupRole,
   calculateExpiryDate,
 } from '../types';
 
@@ -163,13 +165,44 @@ export const groupService = {
   },
 
   /**
-   * Fetches full group details by ID.
+   * Fetches full group details by ID including active members, profiles, and enabled features.
    */
-  async fetchGroupDetails(groupId: string): Promise<{ group: GroupRecord | null; error?: string }> {
+  async fetchGroupDetails(
+    groupId: string,
+    currentUserId?: string,
+  ): Promise<{ group: GroupDetailedRecord | null; error?: string }> {
     try {
       const { data, error } = await supabase
         .from('groups')
-        .select('*')
+        .select(`
+          id,
+          owner_id,
+          name,
+          description,
+          image_path,
+          purpose,
+          starts_at,
+          expires_at,
+          lifecycle_state,
+          created_at,
+          updated_at,
+          group_members(
+            user_id,
+            role,
+            joined_at,
+            left_at,
+            profiles(
+              user_id,
+              username,
+              display_name,
+              avatar_path
+            )
+          ),
+          group_features(
+            feature_key,
+            enabled_at
+          )
+        `)
         .eq('id', groupId)
         .single();
 
@@ -177,10 +210,71 @@ export const groupService = {
         return { group: null, error: error?.message || 'Space not found.' };
       }
 
-      return { group: data as GroupRecord };
+      type RawMember = {
+        user_id: string;
+        role: string;
+        joined_at: string;
+        left_at: string | null;
+        profiles: {
+          user_id: string;
+          username: string;
+          display_name: string;
+          avatar_path: string | null;
+        } | null;
+      };
+
+      const rawMembers = (data.group_members as unknown as RawMember[]) || [];
+      const activeMembers = rawMembers
+        .filter((m) => !m.left_at)
+        .map((m) => ({
+          user_id: m.user_id,
+          role: m.role as GroupRole,
+          joined_at: m.joined_at,
+          profile: m.profiles
+            ? {
+                user_id: m.profiles.user_id,
+                username: m.profiles.username,
+                display_name: m.profiles.display_name,
+                avatar_path: m.profiles.avatar_path,
+              }
+            : null,
+        }));
+
+      const rawFeatures =
+        (data.group_features as unknown as Array<{ feature_key: string; enabled_at: string }>) || [];
+
+      let currentUserRole: GroupRole | null = null;
+      if (currentUserId) {
+        if (data.owner_id === currentUserId) {
+          currentUserRole = 'OWNER';
+        } else {
+          const match = activeMembers.find((m) => m.user_id === currentUserId);
+          if (match) currentUserRole = match.role;
+        }
+      }
+
+      const detailedGroup: GroupDetailedRecord = {
+        id: data.id,
+        owner_id: data.owner_id,
+        name: data.name,
+        description: data.description,
+        image_path: data.image_path,
+        purpose: data.purpose,
+        starts_at: data.starts_at,
+        expires_at: data.expires_at,
+        lifecycle_state: data.lifecycle_state,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        members: activeMembers,
+        features: rawFeatures,
+        currentUserRole,
+      };
+
+      return { group: detailedGroup };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch space details.';
       return { group: null, error: message };
     }
   },
 };
+
