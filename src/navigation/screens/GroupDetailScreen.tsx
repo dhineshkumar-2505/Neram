@@ -151,6 +151,11 @@ export const GroupDetailScreen: React.FC<RootStackScreenProps<'GroupDetail'>> = 
                 groupId: group.id,
                 groupName: group.name,
               });
+            } else if (moduleKey === 'LOCATION') {
+              navigation.navigate('LocationSession', {
+                groupId: group.id,
+                groupName: group.name,
+              });
             }
           }}
         />

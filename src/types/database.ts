@@ -449,33 +449,51 @@ export type Database = {
       }
       location_sessions: {
         Row: {
+          created_at: string
+          created_by: string
           destination_lat: number
           destination_lng: number
+          destination_name: string | null
+          ended_at: string | null
           ends_at: string
           group_id: string
           id: string
           starts_at: string
           status: Database["public"]["Enums"]["location_session_status"]
+          title: string
+          updated_at: string
           user_id: string
         }
         Insert: {
+          created_at?: string
+          created_by?: string
           destination_lat: number
           destination_lng: number
+          destination_name?: string | null
+          ended_at?: string | null
           ends_at: string
           group_id: string
           id?: string
           starts_at?: string
           status?: Database["public"]["Enums"]["location_session_status"]
-          user_id: string
+          title?: string
+          updated_at?: string
+          user_id?: string
         }
         Update: {
+          created_at?: string
+          created_by?: string
           destination_lat?: number
           destination_lng?: number
+          destination_name?: string | null
+          ended_at?: string | null
           ends_at?: string
           group_id?: string
           id?: string
           starts_at?: string
           status?: Database["public"]["Enums"]["location_session_status"]
+          title?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: [
@@ -488,6 +506,51 @@ export type Database = {
           },
           {
             foreignKeyName: "location_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      location_session_participants: {
+        Row: {
+          id: string
+          joined_at: string
+          left_at: string | null
+          session_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          left_at?: string | null
+          session_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          left_at?: string | null
+          session_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "location_session_participants_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "location_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "location_session_participants_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"

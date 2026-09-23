@@ -257,3 +257,26 @@ flowchart TD
   3. All screens implement purposeful loading skeletons, empty states, error fallbacks, and offline banners.
   4. Penetration/RLS test suite validates that client spoofing cannot read other groups' data or bypass friendship rules.
   5. Physical devices (iOS and Android) pass full end-to-end flow without crashes.
+
+---
+
+## 6. Implementation Progress & Module Status
+
+### Part 7 — Collaborative Modules (COMPLETED)
+- **Step 7.1: Collaborative Task Board Engine** (`tasks`, `task_assignees`, drag/drop, Realtime sync, RLS) — **Done**
+- **Step 7.2: Instant Polls & Consensus Engine** (`polls`, `poll_options`, `poll_votes`, quorum, live tally, RLS) — **Done**
+- **Step 7.3: Itinerary, Events & Countdown Engine** (`events`, live ticker countdown, ICS calendar export, RLS) — **Done**
+- **Step 7.4: Media Vault & Attachment Engine** (`public.files`, Supabase storage signed URLs, upload/delete lifecycle, RLS) — **Done**
+
+### Part 8 — Realtime Map, Outing Coordination & Live ETA Engine (IN PROGRESS)
+- **Step 8.1: Location Session Architecture & Opt-In Permissions** — **COMPLETED**
+  - Schema: Multi-participant outing sessions (`location_sessions`), explicit opt-in roster (`location_session_participants`), and latest active fix only (`current_locations` with composite primary key `(session_id, user_id)`).
+  - Strict Privacy Boundary: Location decoupled from User Profile, Presence, and Group Membership (`Group Member ≠ Location Participant`).
+  - Automatic Coordinate Purge: Triggers delete coordinates when participant leaves, session concludes, or space auto-dissolves.
+  - Two-Stage Consent: Educational modal (`LocationOptInModal`) outlining 4 core guarantees (Session-Scoped, Strict Privacy, Ephemeral Purge, Zero Silent Tracking) before triggering native OS foreground location permission via `expo-location`.
+  - Android-First Design: Obsidian Dark screen (`LocationSessionScreen`), countdown badge, active outing card, participating roster, bespoke vector icons (zero emojis), and read-only freeze when group expires.
+  - Tests & Build: 4 new test suites (100% pass rate: 46/46 suites, 360/360 tests) + clean Android Metro bundle export.
+- **Step 8.2: Adaptive Geolocation & Battery Optimization Engine** — *Upcoming*
+- **Step 8.3: MapLibre Vector Map & Ephemeral Participant Visualization** — *Upcoming*
+- **Step 8.4: Valhalla Routing, Live ETA & Destination Geofence Engine** — *Upcoming*
+

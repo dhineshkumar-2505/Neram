@@ -36,6 +36,7 @@ export type RootStackParamList = {
   Polls: { groupId: string; groupName?: string };
   Events: { groupId: string; groupName?: string };
   MediaVault: { groupId: string; groupName?: string };
+  LocationSession: { groupId: string; groupName?: string };
 };
 
 export type RootStackScreenProps<T extends keyof RootStackParamList> =
