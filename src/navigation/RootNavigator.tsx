@@ -7,6 +7,7 @@ import type { RootStackParamList } from './types';
 
 import MainTabNavigator from './MainTabNavigator';
 import GroupDetailScreen from './screens/GroupDetailScreen';
+import ChatScreen from '../features/chat/screens/ChatScreen';
 import AuthNavigator from './AuthNavigator';
 import AuthLoadingScreen from '../features/auth/screens/AuthLoadingScreen';
 
@@ -40,6 +41,13 @@ export const RootNavigator: React.FC = () => {
               headerTintColor: tokens.colors.text.primary,
               headerStyle: { backgroundColor: tokens.colors.surface },
               headerShadowVisible: false,
+            }}
+          />
+          <Stack.Screen
+            name="Chat"
+            component={ChatScreen}
+            options={{
+              headerShown: false,
             }}
           />
         </Stack.Navigator>

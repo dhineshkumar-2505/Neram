@@ -125,6 +125,14 @@ export const GroupDetailScreen: React.FC<RootStackScreenProps<'GroupDetail'>> = 
         <GroupModuleHub
           enabledFeatures={group.features}
           isExpired={isExpired}
+          onModulePress={(moduleKey) => {
+            if (moduleKey === 'CHAT') {
+              navigation.navigate('Chat', {
+                groupId: group.id,
+                groupName: group.name,
+              });
+            }
+          }}
         />
 
         {/* Member Roster Card */}
