@@ -1,0 +1,49 @@
+name: Supabase Activity Check
+
+on:
+  schedule:
+    # Runs once daily at 03:45 UTC (approximately once every 24 hours)
+    - cron: '45 3 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: supabase-activity
+  cancel-in-progress: false
+
+jobs:
+  heartbeat:
+    name: Supabase Daily Activity Ping
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Perform Lightweight Activity Check
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || vars.SUPABASE_ANON_KEY }}
+        run: |
+          echo "Neram Supabase activity check started"
+
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "Error: SUPABASE_URL or SUPABASE_ANON_KEY is not configured in repository secrets."
+            exit 1
+          fi
+
+          URL="${SUPABASE_URL%/}"
+
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X GET \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            "${URL}/rest/v1/profiles?select=user_id&limit=1")
+
+          if [ "$HTTP_STATUS" -eq 200 ]; then
+            echo "Supabase request successful"
+            echo "HTTP status: $HTTP_STATUS"
+            echo "Activity check completed"
+            exit 0
+          else
+            echo "Supabase request failed"
+            echo "HTTP status: $HTTP_STATUS"
+            exit 1
+          fi

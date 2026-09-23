@@ -464,3 +464,26 @@ flowchart TD
   - 0 ESLint errors or warnings (`npm run lint -- --max-warnings 0`).
   - Android production export validated (`npx expo export --platform android --no-bytecode` compiling 1577 modules with zero errors).
 
+---
+
+## Supabase Free Plan Activity Workflow
+
+To prevent project pausing under Supabase's Free-plan 7-day inactivity policy, a lightweight automated workflow is established:
+
+* **Daily Schedule**: Runs once every 24 hours at `03:45 UTC` via GitHub Actions cron (`45 3 * * *`).
+* **Endpoint / Resource Queried**: `GET /rest/v1/profiles?select=user_id&limit=1` using HTTP headers `apikey` and `Authorization: Bearer <anon_key>`.
+* **Why It Is Safe**:
+  * Targets the `public.profiles` table with row limit 1 (`limit=1`).
+  * The public/client `anon` key is used; zero `service_role` credentials are used or exposed.
+  * PostgreSQL RLS policy on `public.profiles` restricts SELECT access strictly to `TO authenticated USING (true)`. Because the request is unauthenticated (`anon`), PostgreSQL evaluates RLS, returns zero rows (`[]`), and yields an HTTP 200 OK.
+  * No user profiles, messages, locations, or sensitive records are disclosed.
+  * No records are created, updated, or deleted—zero database growth or state mutation.
+* **Required GitHub Secrets**:
+  * `SUPABASE_URL`: Supabase project URL (e.g., `https://<project-ref>.supabase.co`).
+  * `SUPABASE_ANON_KEY`: Public client anon key.
+* **Security Considerations**:
+  * Never commit or supply the `service_role` key.
+  * Workflow outputs are strictly sanitized to print only high-level status messages and HTTP response codes. No secrets, tokens, or response payloads are logged.
+* **Manual Workflow Trigger**: Supports manual on-demand execution via GitHub Actions `workflow_dispatch`.
+
+
