@@ -34,6 +34,7 @@ export type RootStackParamList = {
   Chat: { groupId: string; groupName?: string };
   TaskBoard: { groupId: string; groupName?: string };
   Polls: { groupId: string; groupName?: string };
+  Events: { groupId: string; groupName?: string };
 };
 
 export type RootStackScreenProps<T extends keyof RootStackParamList> =

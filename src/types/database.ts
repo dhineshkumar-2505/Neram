@@ -139,38 +139,44 @@ export type Database = {
       events: {
         Row: {
           created_at: string
+          creator_id: string | null
           description: string | null
           ends_at: string | null
           group_id: string
           id: string
+          is_milestone: boolean
           latitude: number | null
-          location_text: string | null
+          location_name: string | null
           longitude: number | null
-          starts_at: string
+          target_time: string
           title: string
         }
         Insert: {
           created_at?: string
+          creator_id?: string | null
           description?: string | null
           ends_at?: string | null
           group_id: string
           id?: string
+          is_milestone?: boolean
           latitude?: number | null
-          location_text?: string | null
+          location_name?: string | null
           longitude?: number | null
-          starts_at: string
+          target_time: string
           title: string
         }
         Update: {
           created_at?: string
+          creator_id?: string | null
           description?: string | null
           ends_at?: string | null
           group_id?: string
           id?: string
+          is_milestone?: boolean
           latitude?: number | null
-          location_text?: string | null
+          location_name?: string | null
           longitude?: number | null
-          starts_at?: string
+          target_time?: string
           title?: string
         }
         Relationships: [
@@ -180,6 +186,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "groups"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
