@@ -58,8 +58,9 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onSuccess })
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Debounced username availability checker
+  // Debounced username availability checker with race-condition prevention
   useEffect(() => {
+    let isCancelled = false;
     const trimmed = username.trim();
     if (!trimmed) {
       setAvailability('idle');
@@ -79,6 +80,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onSuccess })
 
     const timer = setTimeout(async () => {
       const result = await checkUsernameAvailability(trimmed, user?.id);
+      if (isCancelled) return;
       if (result.available) {
         setAvailability('available');
         setUsernameFeedback(`@${trimmed} is available`);
@@ -88,7 +90,10 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onSuccess })
       }
     }, 400);
 
-    return () => clearTimeout(timer);
+    return () => {
+      isCancelled = true;
+      clearTimeout(timer);
+    };
   }, [username, user?.id]);
 
   const isFormValid =
@@ -239,14 +244,14 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onSuccess })
             placeholder="handle"
             autoCapitalize="none"
             autoCorrect={false}
-            maxLength={30}
+            maxLength={20}
             prefix={<Text style={styles.usernamePrefix}>@</Text>}
             suffix={
               availability === 'checking' ? (
                 <ActivityIndicator size="small" color="#818CF8" />
               ) : null
             }
-            hint="3-30 characters (letters, numbers, underscores)"
+            hint="3-20 characters (letters, numbers, underscores)"
             accessibilityLabel="Unique Handle"
           />
 

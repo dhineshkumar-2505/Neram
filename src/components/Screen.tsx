@@ -20,7 +20,7 @@ export const Screen: React.FC<ScreenProps> = ({
   contentContainerStyle,
   edges = ['top', 'left', 'right'],
   backgroundColor = tokens.colors.background,
-  statusBarStyle = 'dark-content',
+  statusBarStyle = 'light-content',
 }) => {
   return (
     <SafeAreaView edges={edges} style={[styles.container, { backgroundColor }, style]}>

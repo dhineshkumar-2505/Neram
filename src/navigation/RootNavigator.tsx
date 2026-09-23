@@ -45,6 +45,7 @@ export const RootNavigator: React.FC = () => {
         </Stack.Navigator>
       ) : (
         <AuthNavigator
+          key={status}
           initialRouteName={status === 'NEEDS_ONBOARDING' ? 'Onboarding' : 'Login'}
         />
       )}

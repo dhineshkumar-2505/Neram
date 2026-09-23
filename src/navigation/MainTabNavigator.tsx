@@ -8,6 +8,13 @@ import FriendsScreen from './screens/FriendsScreen';
 import CreateScreen from './screens/CreateScreen';
 import ActivityScreen from './screens/ActivityScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import {
+  HomeIcon,
+  FriendsIcon,
+  CreateIcon,
+  ActivityIcon,
+  ProfileIcon,
+} from './components/TabIcons';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -16,11 +23,11 @@ export const MainTabNavigator: React.FC = () => {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: tokens.colors.primary.default,
-        tabBarInactiveTintColor: tokens.colors.text.secondary,
+        tabBarActiveTintColor: '#818CF8',
+        tabBarInactiveTintColor: '#64748B',
         tabBarStyle: {
-          backgroundColor: tokens.colors.surface,
-          borderTopColor: tokens.colors.border.subtle,
+          backgroundColor: '#0D111C',
+          borderTopColor: 'rgba(255, 255, 255, 0.08)',
           height: tokens.layout.bottomNavHeight,
           paddingBottom: tokens.spacing.sm,
           paddingTop: tokens.spacing.xs,
@@ -37,6 +44,7 @@ export const MainTabNavigator: React.FC = () => {
         options={{
           tabBarLabel: 'Home',
           tabBarAccessibilityLabel: 'Home Command Center Tab',
+          tabBarIcon: ({ color, size }) => <HomeIcon color={color} size={size} />,
         }}
       />
       <Tab.Screen
@@ -45,6 +53,7 @@ export const MainTabNavigator: React.FC = () => {
         options={{
           tabBarLabel: 'Friends',
           tabBarAccessibilityLabel: 'Friends Management Tab',
+          tabBarIcon: ({ color, size }) => <FriendsIcon color={color} size={size} />,
         }}
       />
       <Tab.Screen
@@ -53,6 +62,7 @@ export const MainTabNavigator: React.FC = () => {
         options={{
           tabBarLabel: 'Create',
           tabBarAccessibilityLabel: 'Create Temporary Group Tab',
+          tabBarIcon: ({ color, size }) => <CreateIcon color={color} size={size} />,
         }}
       />
       <Tab.Screen
@@ -61,6 +71,7 @@ export const MainTabNavigator: React.FC = () => {
         options={{
           tabBarLabel: 'Activity',
           tabBarAccessibilityLabel: 'Activity and Notifications Tab',
+          tabBarIcon: ({ color, size }) => <ActivityIcon color={color} size={size} />,
         }}
       />
       <Tab.Screen
@@ -69,6 +80,7 @@ export const MainTabNavigator: React.FC = () => {
         options={{
           tabBarLabel: 'Profile',
           tabBarAccessibilityLabel: 'User Profile and Settings Tab',
+          tabBarIcon: ({ color, size }) => <ProfileIcon color={color} size={size} />,
         }}
       />
     </Tab.Navigator>

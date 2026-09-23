@@ -5,10 +5,11 @@ export interface UsernameValidationResult {
   error?: string;
 }
 
-export const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,30}$/;
+export const USERNAME_REGEX = /^[a-z0-9_]{3,20}$/;
 
 /**
- * Validates the username against system syntax and business rules.
+ * Validates the username against system syntax and database constraints.
+ * Strictly adheres to PostgreSQL chk_username_format (3-20 lowercase chars).
  */
 export function validateUsernameSyntax(username: string): UsernameValidationResult {
   const trimmed = username.trim();
@@ -21,18 +22,18 @@ export function validateUsernameSyntax(username: string): UsernameValidationResu
     return { isValid: false, error: 'Username must be at least 3 characters long.' };
   }
 
-  if (trimmed.length > 30) {
-    return { isValid: false, error: 'Username cannot exceed 30 characters.' };
+  if (trimmed.length > 20) {
+    return { isValid: false, error: 'Username cannot exceed 20 characters.' };
   }
 
   if (!USERNAME_REGEX.test(trimmed)) {
     return {
       isValid: false,
-      error: 'Username can only contain letters, numbers, and underscores.',
+      error: 'Username can only contain lowercase letters, numbers, and underscores.',
     };
   }
 
-  if (trimmed.toLowerCase().startsWith('user_')) {
+  if (trimmed.startsWith('user_')) {
     return {
       isValid: false,
       error: 'Username cannot start with the reserved prefix "user_".',

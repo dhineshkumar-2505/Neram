@@ -34,11 +34,19 @@ describe('usernameService', () => {
       expect(result.error).toBe('Username must be at least 3 characters long.');
     });
 
-    it('rejects username longer than 30 characters', () => {
-      const longName = 'a'.repeat(31);
+    it('rejects username longer than 20 characters', () => {
+      const longName = 'a'.repeat(21);
       const result = validateUsernameSyntax(longName);
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe('Username cannot exceed 30 characters.');
+      expect(result.error).toBe('Username cannot exceed 20 characters.');
+    });
+
+    it('rejects uppercase characters to match PostgreSQL constraint', () => {
+      const result = validateUsernameSyntax('AlexChen');
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe(
+        'Username can only contain lowercase letters, numbers, and underscores.',
+      );
     });
 
     it('rejects special characters other than underscore', () => {

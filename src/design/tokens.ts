@@ -49,25 +49,25 @@ export const colors = {
     muted: '#99F6E4',
   },
 
-  // Neutral Surfaces & Hierarchy
-  background: '#F8FAFC',   // Base screen background
-  surface: '#FFFFFF',      // Card & sheet surface
-  surfaceSubtle: '#F1F5F9', // Elevated card / skeleton shimmer
-  surfaceElevated: '#FFFFFF',
+  // Neutral Surfaces & Hierarchy (Obsidian Dark Theme)
+  background: '#0B0F19',   // Deep Obsidian base screen background
+  surface: '#111827',      // Card, list item & sheet surface
+  surfaceSubtle: '#161F30', // Elevated card / subtle background
+  surfaceElevated: '#1E293B', // Floating rails & modals
 
   // Text Hierarchy
   text: {
-    primary: '#0F172A',    // Deep Blue-Black (dominant)
-    secondary: '#475569',  // Slate muted (body & supporting)
-    tertiary: '#94A3B8',   // Disabled / inactive metadata
-    inverse: '#FFFFFF',    // Text on dark/primary surfaces
+    primary: '#F8FAFC',    // Pure bright white (dominant title/heading)
+    secondary: '#94A3B8',  // Slate muted (body & supporting)
+    tertiary: '#64748B',   // Inactive metadata / hints
+    inverse: '#0B0F19',    // Text on light/accent surfaces
   },
 
   // Borders & Dividers
   border: {
-    default: '#CBD5E1',
-    subtle: '#E2E8F0',
-    strong: '#94A3B8',
+    default: 'rgba(255, 255, 255, 0.12)',
+    subtle: 'rgba(255, 255, 255, 0.08)',
+    strong: 'rgba(255, 255, 255, 0.20)',
   },
 
   // Status & Feedback Signals

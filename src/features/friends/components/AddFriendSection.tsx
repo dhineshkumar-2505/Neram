@@ -32,8 +32,9 @@ export const AddFriendSection: React.FC<AddFriendSectionProps> = ({ onFriendAdde
     null,
   );
 
-  // Debounced exact username search
+  // Debounced exact username search with race-condition prevention
   useEffect(() => {
+    let isCurrent = true;
     const trimmed = query.trim().replace(/^@/, '');
     setFeedback(null);
 
@@ -49,6 +50,7 @@ export const AddFriendSection: React.FC<AddFriendSectionProps> = ({ onFriendAdde
     const timer = setTimeout(async () => {
       try {
         const { result, error } = await searchExactUsername(trimmed);
+        if (!isCurrent) return;
         if (error) {
           setSearchResult(null);
           setHasSearched(true);
@@ -60,16 +62,20 @@ export const AddFriendSection: React.FC<AddFriendSectionProps> = ({ onFriendAdde
 
         if (result && user) {
           const rel = await friendsService.getRelationshipStatus(user.id, result.userId);
+          if (!isCurrent) return;
           setRelationship(rel);
         }
       } catch {
-        setSearchResult(null);
+        if (isCurrent) setSearchResult(null);
       } finally {
-        setIsSearching(false);
+        if (isCurrent) setIsSearching(false);
       }
     }, 400);
 
-    return () => clearTimeout(timer);
+    return () => {
+      isCurrent = false;
+      clearTimeout(timer);
+    };
   }, [query, user]);
 
   const handleSendRequest = async () => {
@@ -119,7 +125,7 @@ export const AddFriendSection: React.FC<AddFriendSectionProps> = ({ onFriendAdde
         placeholder="username"
         autoCapitalize="none"
         autoCorrect={false}
-        maxLength={30}
+        maxLength={20}
         prefix={<Text style={styles.prefixText}>@</Text>}
         suffix={isSearching ? <ActivityIndicator size="small" color="#818CF8" /> : null}
         hint="Neram does not allow fuzzy search. Type the exact handle."

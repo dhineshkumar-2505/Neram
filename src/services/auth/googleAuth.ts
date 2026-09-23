@@ -25,30 +25,39 @@ export function extractParamsFromUrl(url: string): {
 } {
   const params: Record<string, string> = {};
 
+  const parsePairs = (rawString: string) => {
+    const pairs = rawString.split('&');
+    for (const pair of pairs) {
+      const eqIdx = pair.indexOf('=');
+      if (eqIdx !== -1) {
+        const rawKey = pair.slice(0, eqIdx);
+        const rawVal = pair.slice(eqIdx + 1);
+        try {
+          const key = decodeURIComponent(rawKey.replace(/\+/g, ' '));
+          const value = decodeURIComponent(rawVal.replace(/\+/g, ' '));
+          if (key) {
+            params[key] = value;
+          }
+        } catch {
+          // If decoding fails, fallback to raw
+          params[rawKey] = rawVal;
+        }
+      }
+    }
+  };
+
   // Check query params (?key=val)
   const queryStringIndex = url.indexOf('?');
   if (queryStringIndex !== -1) {
     const queryPart = url.substring(queryStringIndex + 1).split('#')[0] ?? '';
-    const pairs = queryPart.split('&');
-    for (const pair of pairs) {
-      const [key, value] = pair.split('=');
-      if (key && value) {
-        params[decodeURIComponent(key)] = decodeURIComponent(value);
-      }
-    }
+    parsePairs(queryPart);
   }
 
   // Check hash fragment (#key=val)
   const hashIndex = url.indexOf('#');
   if (hashIndex !== -1) {
     const hashPart = url.substring(hashIndex + 1);
-    const pairs = hashPart.split('&');
-    for (const pair of pairs) {
-      const [key, value] = pair.split('=');
-      if (key && value) {
-        params[decodeURIComponent(key)] = decodeURIComponent(value);
-      }
-    }
+    parsePairs(hashPart);
   }
 
   return {

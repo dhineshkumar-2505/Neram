@@ -68,6 +68,16 @@ describe('Google OAuth Service', () => {
       expect(result.refreshToken).toBeUndefined();
       expect(result.error).toBeUndefined();
     });
+
+    it('preserves equal signs in base64 tokens and decodes plus as spaces', () => {
+      const url =
+        'neram://auth/callback#access_token=eyJhbGciOi...==&refresh_token=dGVzdF9yZWZyZXNo==&error_description=OAuth+provider+failed+auth';
+      const result = extractParamsFromUrl(url);
+
+      expect(result.accessToken).toBe('eyJhbGciOi...==');
+      expect(result.refreshToken).toBe('dGVzdF9yZWZyZXNo==');
+      expect(result.error).toBe('OAuth provider failed auth');
+    });
   });
 
   describe('signInWithGoogle', () => {

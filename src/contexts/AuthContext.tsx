@@ -44,29 +44,35 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
-    try {
-      const { data, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
+  const fetchProfile = useCallback(
+    async (
+      userId: string,
+    ): Promise<{ profile: Profile | null; isError: boolean; errorMessage?: string }> => {
+      try {
+        const { data, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle();
 
-      if (profileError) {
-        if (__DEV__) {
-          console.warn('[AuthProvider] Error fetching profile:', profileError.message);
+        if (profileError) {
+          if (__DEV__) {
+            console.warn('[AuthProvider] Error fetching profile:', profileError.message);
+          }
+          return { profile: null, isError: true, errorMessage: profileError.message };
         }
-        return null;
-      }
 
-      return data as Profile | null;
-    } catch (err) {
-      if (__DEV__) {
-        console.warn('[AuthProvider] Unexpected exception fetching profile:', err);
+        return { profile: (data as Profile | null) ?? null, isError: false };
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Unexpected exception fetching profile';
+        if (__DEV__) {
+          console.warn('[AuthProvider] Unexpected exception fetching profile:', msg);
+        }
+        return { profile: null, isError: true, errorMessage: msg };
       }
-      return null;
-    }
-  }, []);
+    },
+    [],
+  );
 
   const resolveAuthState = useCallback(
     async (currentSession: Session | null) => {
@@ -85,7 +91,17 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
       setSession(currentSession);
       setUser(currentSession.user);
 
-      const userProfile = await fetchProfile(currentSession.user.id);
+      const { profile: userProfile, isError: profileFetchFailed, errorMessage } =
+        await fetchProfile(currentSession.user.id);
+
+      if (profileFetchFailed) {
+        setError(errorMessage || 'Failed to sync profile over network.');
+        // Do NOT assume user needs onboarding if network failed
+        setStatus('AUTHENTICATED');
+        setIsLoading(false);
+        return;
+      }
+
       setProfileState(userProfile);
 
       const needsOnboarding = checkNeedsOnboarding(userProfile);
@@ -179,11 +195,14 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
 
   const refreshProfile = useCallback(async (): Promise<Profile | null> => {
     if (!user) return null;
-    const freshProfile = await fetchProfile(user.id);
-    setProfileState(freshProfile);
-    const needsOnboarding = checkNeedsOnboarding(freshProfile);
-    setStatus(needsOnboarding ? 'NEEDS_ONBOARDING' : 'AUTHENTICATED');
-    return freshProfile;
+    const { profile: freshProfile, isError } = await fetchProfile(user.id);
+    if (!isError && freshProfile) {
+      setProfileState(freshProfile);
+      const needsOnboarding = checkNeedsOnboarding(freshProfile);
+      setStatus(needsOnboarding ? 'NEEDS_ONBOARDING' : 'AUTHENTICATED');
+      return freshProfile;
+    }
+    return null;
   }, [user, fetchProfile]);
 
   const setProfile = useCallback((newProfile: Profile): void => {
