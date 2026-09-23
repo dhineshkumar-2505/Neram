@@ -16,6 +16,17 @@ jest.mock('../../src/features/chat/services/chatService', () => ({
   },
 }));
 
+jest.mock('../../src/features/chat/hooks/useChatPresence', () => ({
+  useChatPresence: jest.fn().mockReturnValue({
+    typingUsers: [],
+    typingLabel: '',
+    onlineCount: 1,
+    sendTypingKeystroke: jest.fn(),
+    clearTyping: jest.fn(),
+  }),
+  formatTypingLabel: jest.fn().mockReturnValue(''),
+}));
+
 jest.mock('../../src/features/groups/services/groupService', () => ({
   groupService: {
     fetchGroupDetails: jest.fn(),
@@ -309,5 +320,28 @@ describe('ChatScreen', () => {
     // Unmount and check cleanup
     unmount();
     expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders typing indicator when presence reports peer members typing', async () => {
+    const { useChatPresence } = jest.requireMock('../../src/features/chat/hooks/useChatPresence');
+    (useChatPresence as jest.Mock).mockReturnValueOnce({
+      typingUsers: [{ userId: 'usr_peer', displayName: 'Alex Rivera' }],
+      typingLabel: 'Alex Rivera is typing...',
+      onlineCount: 2,
+      sendTypingKeystroke: jest.fn(),
+      clearTyping: jest.fn(),
+    });
+
+    const { getByTestId, getByText } = render(
+      <ChatScreen
+        navigation={mockNavigation as unknown as Parameters<typeof ChatScreen>[0]['navigation']}
+        route={mockRoute}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(getByTestId('typing-indicator')).toBeTruthy();
+      expect(getByText('Alex Rivera is typing...')).toBeTruthy();
+    });
   });
 });

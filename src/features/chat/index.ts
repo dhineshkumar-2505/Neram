@@ -4,4 +4,6 @@ export * from './components/ChatIcons';
 export * from './components/MessageBubble';
 export * from './components/ChatInputBar';
 export * from './components/ReplyPreviewCard';
+export * from './components/TypingIndicator';
+export * from './hooks/useChatPresence';
 export * from './screens/ChatScreen';

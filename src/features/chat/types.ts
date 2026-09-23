@@ -77,3 +77,27 @@ export interface ChatSubscriptionCallbacks {
   onDelete?: (messageId: string) => void;
   onError?: (error: Error) => void;
 }
+
+export interface ChatPresenceState {
+  userId: string;
+  displayName: string;
+  username: string;
+  isTyping: boolean;
+  onlineAt: string;
+}
+
+export interface UseChatPresenceOptions {
+  groupId: string;
+  currentUserId: string;
+  displayName: string;
+  username: string;
+}
+
+export interface UseChatPresenceResult {
+  typingUsers: ChatPresenceState[];
+  typingLabel: string;
+  onlineCount: number;
+  sendTypingKeystroke: () => void;
+  clearTyping: () => void;
+}
+

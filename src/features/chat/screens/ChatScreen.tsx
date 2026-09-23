@@ -19,6 +19,8 @@ import { chatService } from '../services/chatService';
 import type { ChatMessage, ReplyPreview } from '../types';
 import MessageBubble from '../components/MessageBubble';
 import ChatInputBar from '../components/ChatInputBar';
+import TypingIndicator from '../components/TypingIndicator';
+import { useChatPresence } from '../hooks/useChatPresence';
 import type { RootStackScreenProps } from '../../../navigation/types';
 
 export type ChatScreenProps = RootStackScreenProps<'Chat'>;
@@ -51,6 +53,14 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
     group?.lifecycle_state || 'ACTIVE',
     groupId,
   );
+
+  // Ephemeral Realtime Presence & Multi-User Typing state
+  const { typingLabel, sendTypingKeystroke, clearTyping } = useChatPresence({
+    groupId,
+    currentUserId,
+    displayName: profile?.display_name || user?.email || 'Member',
+    username: profile?.username || 'member',
+  });
 
   // Fetch initial group details
   useEffect(() => {
@@ -181,6 +191,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
     setReplyTo(null);
     setIsSending(true);
     setErrorBanner(null);
+    clearTyping();
 
     const result = await chatService.sendMessage({
       groupId,
@@ -319,10 +330,16 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
           />
         )}
 
+        {/* Realtime Typing Indicator */}
+        <TypingIndicator typingLabel={typingLabel} />
+
         {/* Input Bar or Expiration Lock Banner */}
         <ChatInputBar
           inputText={inputText}
-          onChangeText={setInputText}
+          onChangeText={(text) => {
+            setInputText(text);
+            sendTypingKeystroke();
+          }}
           onSend={handleSend}
           isExpired={isExpired}
           isSending={isSending}
