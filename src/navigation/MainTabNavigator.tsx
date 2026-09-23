@@ -2,6 +2,8 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { tokens } from '../design';
 import type { MainTabParamList } from './types';
+import { useAuth } from '../hooks/useAuth';
+import { useNotifications } from '../features/notifications';
 
 import HomeScreen from './screens/HomeScreen';
 import FriendsScreen from './screens/FriendsScreen';
@@ -19,6 +21,9 @@ import {
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export const MainTabNavigator: React.FC = () => {
+  const { user } = useAuth();
+  const { unreadCount } = useNotifications(user?.id);
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -71,6 +76,13 @@ export const MainTabNavigator: React.FC = () => {
         options={{
           tabBarLabel: 'Activity',
           tabBarAccessibilityLabel: 'Activity and Notifications Tab',
+          tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: '#818CF8',
+            color: '#FFFFFF',
+            fontSize: 10,
+            lineHeight: 12,
+          },
           tabBarIcon: ({ color, size }) => <ActivityIcon color={color} size={size} />,
         }}
       />
