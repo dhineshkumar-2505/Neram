@@ -9,6 +9,7 @@ import MainTabNavigator from './MainTabNavigator';
 import GroupDetailScreen from './screens/GroupDetailScreen';
 import ChatScreen from '../features/chat/screens/ChatScreen';
 import TaskBoardScreen from '../features/tasks/screens/TaskBoardScreen';
+import { PollsScreen } from '../features/polls/screens/PollsScreen';
 import AuthNavigator from './AuthNavigator';
 import AuthLoadingScreen from '../features/auth/screens/AuthLoadingScreen';
 
@@ -54,6 +55,13 @@ export const RootNavigator: React.FC = () => {
           <Stack.Screen
             name="TaskBoard"
             component={TaskBoardScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="Polls"
+            component={PollsScreen}
             options={{
               headerShown: false,
             }}

@@ -631,18 +631,21 @@ export type Database = {
           option_text: string
           poll_id: string
           sort_order: number
+          vote_count: number
         }
         Insert: {
           id?: string
           option_text: string
           poll_id: string
           sort_order?: number
+          vote_count?: number
         }
         Update: {
           id?: string
           option_text?: string
           poll_id?: string
           sort_order?: number
+          vote_count?: number
         }
         Relationships: [
           {
@@ -699,27 +702,36 @@ export type Database = {
       }
       polls: {
         Row: {
+          closed_at: string | null
           created_at: string
           creator_id: string
           expires_at: string | null
           group_id: string
           id: string
+          is_closed: boolean
+          is_multiple_choice: boolean
           question: string
         }
         Insert: {
+          closed_at?: string | null
           created_at?: string
           creator_id: string
           expires_at?: string | null
           group_id: string
           id?: string
+          is_closed?: boolean
+          is_multiple_choice?: boolean
           question: string
         }
         Update: {
+          closed_at?: string | null
           created_at?: string
           creator_id?: string
           expires_at?: string | null
           group_id?: string
           id?: string
+          is_closed?: boolean
+          is_multiple_choice?: boolean
           question?: string
         }
         Relationships: [
@@ -902,6 +914,14 @@ export type Database = {
       are_friends: {
         Args: { p_user_a: string; p_user_b: string }
         Returns: boolean
+      }
+      cast_poll_vote: {
+        Args: { p_poll_id: string; p_option_id: string }
+        Returns: Json
+      }
+      close_poll: {
+        Args: { p_poll_id: string }
+        Returns: Json
       }
       is_blocked: {
         Args: { p_user_a: string; p_user_b: string }

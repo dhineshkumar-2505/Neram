@@ -136,6 +136,11 @@ export const GroupDetailScreen: React.FC<RootStackScreenProps<'GroupDetail'>> = 
                 groupId: group.id,
                 groupName: group.name,
               });
+            } else if (moduleKey === 'POLLS') {
+              navigation.navigate('Polls', {
+                groupId: group.id,
+                groupName: group.name,
+              });
             }
           }}
         />
