@@ -338,7 +338,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
           inputText={inputText}
           onChangeText={(text) => {
             setInputText(text);
-            sendTypingKeystroke();
+            if (text.trim().length === 0) {
+              clearTyping();
+            } else {
+              sendTypingKeystroke();
+            }
           }}
           onSend={handleSend}
           isExpired={isExpired}

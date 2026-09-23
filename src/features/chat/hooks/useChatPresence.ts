@@ -1,10 +1,29 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { AppState, type AppStateStatus } from 'react-native';
 import { supabase } from '../../../lib/supabase';
 import type {
   ChatPresenceState,
   UseChatPresenceOptions,
   UseChatPresenceResult,
 } from '../types';
+
+/**
+ * Maximum duration (in ms) a peer can remain in typing state before being
+ * automatically evicted as stale (e.g. abrupt network disconnect or app kill).
+ */
+const MAX_TYPING_AGE_MS = 5000;
+
+/**
+ * Validates untrusted realtime presence payload structure.
+ */
+function isValidPresence(p: unknown): p is ChatPresenceState {
+  return (
+    typeof p === 'object' &&
+    p !== null &&
+    typeof (p as ChatPresenceState).userId === 'string' &&
+    (p as ChatPresenceState).userId.length > 0
+  );
+}
 
 /**
  * WhatsApp-style multi-user typing status text generator.
@@ -68,21 +87,34 @@ export function useChatPresence({
     const syncPresenceState = () => {
       try {
         const state = channel.presenceState<ChatPresenceState>();
-        const allMembers: ChatPresenceState[] = [];
+        const memberMap = new Map<string, ChatPresenceState>();
 
+        // Safely extract and deduplicate members across presence keys
         Object.values(state).forEach((presences) => {
-          if (Array.isArray(presences) && presences.length > 0) {
-            const member = presences[0];
-            if (member && member.userId) {
-              allMembers.push(member);
+          if (Array.isArray(presences)) {
+            for (const p of presences) {
+              if (isValidPresence(p)) {
+                const existing = memberMap.get(p.userId);
+                // Prefer active typing state or newest entry
+                if (!existing || (p.isTyping && !existing.isTyping)) {
+                  memberMap.set(p.userId, p);
+                }
+              }
             }
           }
         });
 
-        // Filter out current user from typing indicators
-        const activeTypers = allMembers.filter(
-          (p) => p.userId !== currentUserId && p.isTyping === true,
-        );
+        const allMembers = Array.from(memberMap.values());
+        const now = Date.now();
+
+        // Filter out current user and stale typers (> 5s staleness)
+        const activeTypers = allMembers.filter((p) => {
+          if (p.userId === currentUserId || !p.isTyping) return false;
+          if (p.lastTypedAt && now - p.lastTypedAt > MAX_TYPING_AGE_MS) {
+            return false;
+          }
+          return true;
+        });
 
         setTypingUsers(activeTypers);
         setOnlineCount(Math.max(1, allMembers.length));
@@ -111,7 +143,50 @@ export function useChatPresence({
         }
       });
 
+    // Periodic stale typer eviction interval (runs every 2500ms)
+    const staleInterval = setInterval(() => {
+      syncPresenceState();
+    }, 2500);
+
+    // App state listener: clear typing on background; re-track on active
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (nextAppState.match(/inactive|background/)) {
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+          typingTimeoutRef.current = null;
+        }
+        isCurrentlyTypingRef.current = false;
+        if (channelRef.current) {
+          channelRef.current
+            .track({
+              userId: currentUserId,
+              displayName,
+              username,
+              isTyping: false,
+              onlineAt: new Date().toISOString(),
+            })
+            .catch(() => {});
+        }
+      } else if (nextAppState === 'active') {
+        if (channelRef.current) {
+          channelRef.current
+            .track({
+              userId: currentUserId,
+              displayName,
+              username,
+              isTyping: false,
+              onlineAt: new Date().toISOString(),
+            })
+            .catch(() => {});
+        }
+      }
+    };
+
+    const appStateSub = AppState.addEventListener('change', handleAppStateChange);
+
     return () => {
+      clearInterval(staleInterval);
+      appStateSub.remove();
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = null;
@@ -135,7 +210,7 @@ export function useChatPresence({
       clearTimeout(typingTimeoutRef.current);
     }
 
-    // If not already marked typing, broadcast isTyping: true
+    // If not already marked typing, broadcast isTyping: true with current timestamp
     if (!isCurrentlyTypingRef.current) {
       isCurrentlyTypingRef.current = true;
       channelRef.current
@@ -145,6 +220,7 @@ export function useChatPresence({
           username,
           isTyping: true,
           onlineAt: new Date().toISOString(),
+          lastTypedAt: Date.now(),
         })
         .catch(() => {});
     }
@@ -167,7 +243,7 @@ export function useChatPresence({
   }, [currentUserId, displayName, username]);
 
   /**
-   * Immediately clears typing state (e.g. on message send or navigation departure).
+   * Immediately clears typing state (e.g. on message send, input cleared, or navigation departure).
    */
   const clearTyping = useCallback(() => {
     if (typingTimeoutRef.current) {

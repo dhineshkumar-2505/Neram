@@ -84,6 +84,7 @@ export interface ChatPresenceState {
   username: string;
   isTyping: boolean;
   onlineAt: string;
+  lastTypedAt?: number;
 }
 
 export interface UseChatPresenceOptions {

@@ -245,6 +245,80 @@ describe('useChatPresence & formatTypingLabel', () => {
       );
     });
 
+    it('deduplicates multiple presence entries for the same user', () => {
+      const { result } = renderHook(() =>
+        useChatPresence({
+          groupId: 'grp_test',
+          currentUserId: 'usr_me',
+          displayName: 'Current User',
+          username: 'me_dev',
+        }),
+      );
+
+      mockPresenceState = {
+        session_1: [
+          {
+            userId: 'usr_peer_1',
+            displayName: 'Alex',
+            username: 'alex_r',
+            isTyping: true,
+            onlineAt: '2026-09-23T10:00:00Z',
+          },
+        ],
+        session_2: [
+          {
+            userId: 'usr_peer_1',
+            displayName: 'Alex',
+            username: 'alex_r',
+            isTyping: true,
+            onlineAt: '2026-09-23T10:00:01Z',
+          },
+        ],
+      };
+
+      act(() => {
+        registeredHandlers['sync']?.({});
+      });
+
+      // User must be deduplicated to 1 online member and 1 typing user
+      expect(result.current.onlineCount).toBe(1);
+      expect(result.current.typingUsers).toHaveLength(1);
+      expect(result.current.typingLabel).toBe('Alex is typing...');
+    });
+
+    it('automatically evicts stale typers older than 5000ms', () => {
+      const { result } = renderHook(() =>
+        useChatPresence({
+          groupId: 'grp_test',
+          currentUserId: 'usr_me',
+          displayName: 'Current User',
+          username: 'me_dev',
+        }),
+      );
+
+      const staleTime = Date.now() - 6000;
+      mockPresenceState = {
+        usr_peer_stale: [
+          {
+            userId: 'usr_peer_stale',
+            displayName: 'Stale Typer',
+            username: 'stale',
+            isTyping: true,
+            onlineAt: '2026-09-23T10:00:00Z',
+            lastTypedAt: staleTime,
+          },
+        ],
+      };
+
+      act(() => {
+        registeredHandlers['sync']?.({});
+      });
+
+      // Stale typer should be filtered out immediately
+      expect(result.current.typingUsers).toHaveLength(0);
+      expect(result.current.typingLabel).toBe('');
+    });
+
     it('untracks and removes channel on unmount', () => {
       const { unmount } = renderHook(() =>
         useChatPresence({
