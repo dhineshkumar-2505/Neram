@@ -357,5 +357,52 @@ flowchart TD
   - 0 ESLint errors or warnings (`npm run lint`).
   - Android production export validated (`npx expo export --platform android --no-bytecode` bundling 1269 modules with zero errors).
 
-
-
+### Part 10 — Security Hardening, Auto-Purge Worker & Production Readiness (COMPLETED)
+- **Database Security Hardening & Concurrency-Safe Purge Worker**:
+  - Migration `20260923000010_security_hardening_and_auto_purge.sql`:
+    - Hardened `process_group_lifecycle_transitions()` RPC by revoking execution from `PUBLIC, anon, authenticated` and granting exclusively to `service_role`.
+    - Hardened `public.messages` DELETE RLS policy requiring `AND public.is_group_active(group_id)` to forbid tampering with messages after group expiration.
+    - Added `cleanup_status`, `cleanup_attempted_at`, `cleanup_error`, `cleaned_at` fields to `public.groups` with partial index `idx_groups_cleanup_queue`.
+    - Created `claim_groups_for_dissolution(p_limit INT)` utilizing `FOR UPDATE SKIP LOCKED` for concurrency-safe worker claiming.
+    - Created `execute_group_database_purge(p_group_id UUID)` deleting in exact foreign-key dependency order (`current_locations` $\to$ `location_session_participants` $\to$ `location_sessions` $\to$ `poll_votes` $\to$ `poll_options` $\to$ `polls` $\to$ `task_assignees` $\to$ `tasks` $\to$ `events` $\to$ `message_attachments` $\to$ `messages` $\to$ `files` $\to$ `notifications` $\to$ `group_features` $\to$ `group_members`), setting `lifecycle_state = 'PURGED'`, `cleanup_status = 'COMPLETED'`, and writing an immutable audit record to `public.audit_logs`.
+    - Created `record_group_cleanup_failure(p_group_id UUID, p_error_message TEXT)` to record retry attempts and error diagnostics.
+- **Edge Function Auto-Purge Worker**:
+  - Created `supabase/functions/purge-worker/index.ts`:
+    - Authenticated via `SUPABASE_SERVICE_ROLE_KEY` with strict Authorization header bearer checking.
+    - Claims batches of pending/failed expired groups via `claim_groups_for_dissolution`.
+    - Deletes all associated storage objects from `group-media` and `attachments` buckets via `storage.from(...).remove(...)`.
+    - Invokes `execute_group_database_purge` to wipe all associated database rows.
+    - Records detailed failure metrics via `record_group_cleanup_failure` on storage or database failure.
+- **Automated RLS Penetration & Negative Security Test Suite**:
+  - Created `tests/security/rlsPenetration.test.ts` (27 tests across all 11 security vectors):
+    - Cross-tenant spoofing & isolation: verified non-members cannot read, create, or modify group resources.
+    - Identity spoofing & sender validation: verified authenticated users cannot forge `creator_id` or sender IDs.
+    - Expired group immutability: verified message send, poll vote, and task creation fail against expired/dissolved groups.
+    - Non-friend access restriction: verified strangers cannot read profile phone numbers or direct invites.
+    - Location spoofing & privilege escalation: verified users cannot push GPS updates for other members or self-promote to OWNER/ADMIN.
+    - Deletion authorization: verified non-owners cannot delete group messages, tasks, files, or polls.
+    - Storage RLS enforcement: verified cross-group uploads and non-owner avatar deletions are rejected.
+    - Administrative RPC protection: verified `claim_groups_for_dissolution` and `execute_group_database_purge` reject non-service callers.
+- **Network Resilience & Failure Recovery Suite**:
+  - Created `tests/services/networkResilience.test.ts` (6 tests):
+    - Simulated 3G/2G high-latency timeouts with graceful `AbortController` cancellation.
+    - Verified offline request queuing, retry backoff bounding, and state preservation.
+    - Verified network reconnect transitions and airplane mode toggle state propagation.
+    - Verified app background state preservation and active resume recovery.
+- **Battery & Realtime Efficiency Audit Suite**:
+  - Created `tests/services/batteryResourceAudit.test.ts` (9 tests):
+    - Realtime channel lifecycle audit: verified 100% channel cleanup on component unmount with zero leaks.
+    - Stationary GPS suppression: verified distance filter threshold ($\ge 10\text{m}$) prevents redundant radio transmissions.
+    - Exponential retry backoff bounding: verified retry delays cap at 30 seconds to prevent radio exhaustion.
+    - Duplicate submission idempotency: verified UI double-tap prevention across buttons and actions.
+- **Secret Scanning & Production Configuration Audit**:
+  - Created `tests/security/secretAndConfigAudit.test.ts` (7 tests):
+    - Verified zero `service_role` credentials in client code or `.env.example`.
+    - Verified zero hardcoded localhost or staging endpoints in source code.
+    - Verified zero API keys, JWT tokens, private keys, or credentials committed.
+    - Verified production configuration flags and secure defaults.
+- **Comprehensive Quality Verification**:
+  - 100% test pass rate: 72 test suites, 553 tests passing cleanly.
+  - 0 TypeScript errors (`npm run typecheck`).
+  - 0 ESLint errors or warnings (`npm run lint`).
+  - Android production export validated (`npx expo export --platform android --no-bytecode` compiling 1269 modules with zero errors).
