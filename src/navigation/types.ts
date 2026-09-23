@@ -35,6 +35,7 @@ export type RootStackParamList = {
   TaskBoard: { groupId: string; groupName?: string };
   Polls: { groupId: string; groupName?: string };
   Events: { groupId: string; groupName?: string };
+  MediaVault: { groupId: string; groupName?: string };
 };
 
 export type RootStackScreenProps<T extends keyof RootStackParamList> =

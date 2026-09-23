@@ -11,6 +11,7 @@ import ChatScreen from '../features/chat/screens/ChatScreen';
 import TaskBoardScreen from '../features/tasks/screens/TaskBoardScreen';
 import { PollsScreen } from '../features/polls/screens/PollsScreen';
 import { EventsScreen } from '../features/events/screens/EventsScreen';
+import { MediaVaultScreen } from '../features/files/screens/MediaVaultScreen';
 import AuthNavigator from './AuthNavigator';
 import AuthLoadingScreen from '../features/auth/screens/AuthLoadingScreen';
 
@@ -70,6 +71,13 @@ export const RootNavigator: React.FC = () => {
           <Stack.Screen
             name="Events"
             component={EventsScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="MediaVault"
+            component={MediaVaultScreen}
             options={{
               headerShown: false,
             }}

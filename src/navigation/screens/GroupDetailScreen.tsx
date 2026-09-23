@@ -146,6 +146,11 @@ export const GroupDetailScreen: React.FC<RootStackScreenProps<'GroupDetail'>> = 
                 groupId: group.id,
                 groupName: group.name,
               });
+            } else if (moduleKey === 'FILES') {
+              navigation.navigate('MediaVault', {
+                groupId: group.id,
+                groupName: group.name,
+              });
             }
           }}
         />
