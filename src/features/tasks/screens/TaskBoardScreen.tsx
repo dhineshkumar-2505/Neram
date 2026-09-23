@@ -10,7 +10,9 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { tokens } from '../../../design';
 import Text from '../../../components/Text';
-import { LoadingState, ErrorState, EmptyState } from '../../../components';
+import { ErrorState, EmptyState } from '../../../components';
+import { SkeletonTask, FadeInContent } from '../../../components/skeleton';
+import { BackIcon } from '../../../components/icons/CommonIcons';
 import { useAuth } from '../../../hooks/useAuth';
 import type { GroupDetailedRecord } from '../../groups/types';
 import { groupService } from '../../groups/services/groupService';
@@ -110,9 +112,7 @@ export const TaskBoardScreen: React.FC<RootStackScreenProps<'TaskBoard'>> = ({
           hitSlop={8}
           testID="task-board-back-button"
         >
-          <Text variant="title2" style={styles.backText}>
-            ‹
-          </Text>
+          <BackIcon size={20} color="#818CF8" />
         </Pressable>
 
         <View style={styles.headerTitleContainer}>
@@ -237,49 +237,51 @@ export const TaskBoardScreen: React.FC<RootStackScreenProps<'TaskBoard'>> = ({
 
       {/* Content Area */}
       {isLoading ? (
-        <LoadingState message="Connecting to secure task board..." />
+        <SkeletonTask count={4} />
       ) : error ? (
         <ErrorState message={error} onRetry={refresh} />
       ) : (
-        <FlatList
-          data={tasks}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TaskCard
-              task={item}
-              onToggleStatus={toggleTaskStatus}
-              onDelete={deleteTask}
-              isReadOnly={isReadOnly}
-            />
-          )}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={refresh}
-              tintColor="#818CF8"
-              colors={['#818CF8']}
-            />
-          }
-          ListEmptyComponent={
-            <EmptyState
-              title={
-                filterTab === 'COMPLETED'
-                  ? 'No Completed Tasks'
-                  : filterTab === 'ACTIVE'
-                    ? 'All Caught Up'
-                    : 'No Tasks Yet'
-              }
-              description={
-                filterTab === 'COMPLETED'
-                  ? 'Check off active tasks as milestones are completed.'
-                  : filterTab === 'ACTIVE'
-                    ? 'Great job! All tasks for this temporary space have been finished.'
-                    : 'Create action items, assign team members, and track sprint goals.'
-              }
-            />
-          }
-          contentContainerStyle={styles.listContent}
-        />
+        <FadeInContent style={styles.fadeContainer}>
+          <FlatList
+            data={tasks}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <TaskCard
+                task={item}
+                onToggleStatus={toggleTaskStatus}
+                onDelete={deleteTask}
+                isReadOnly={isReadOnly}
+              />
+            )}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={refresh}
+                tintColor="#818CF8"
+                colors={['#818CF8']}
+              />
+            }
+            ListEmptyComponent={
+              <EmptyState
+                title={
+                  filterTab === 'COMPLETED'
+                    ? 'No Completed Tasks'
+                    : filterTab === 'ACTIVE'
+                      ? 'All Caught Up'
+                      : 'No Tasks Yet'
+                }
+                description={
+                  filterTab === 'COMPLETED'
+                    ? 'Check off active tasks as milestones are completed.'
+                    : filterTab === 'ACTIVE'
+                      ? 'Great job! All tasks for this temporary space have been finished.'
+                      : 'Create action items, assign team members, and track sprint goals.'
+                }
+              />
+            }
+            contentContainerStyle={styles.listContent}
+          />
+        </FadeInContent>
       )}
 
       {/* Floating Action Button for Task Creation */}
@@ -313,6 +315,9 @@ const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
     backgroundColor: '#0B0F19',
+  },
+  fadeContainer: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',

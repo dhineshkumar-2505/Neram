@@ -12,9 +12,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
 import { tokens } from '../../../design';
 import Text from '../../../components/Text';
-import LoadingState from '../../../components/LoadingState';
 import EmptyState from '../../../components/EmptyState';
 import ErrorState from '../../../components/ErrorState';
+import { SkeletonFile, FadeInContent } from '../../../components/skeleton';
 import { useAuth } from '../../../hooks/useAuth';
 import { groupService } from '../../groups/services/groupService';
 import { useGroupLifecycle } from '../../groups/hooks/useGroupLifecycle';
@@ -210,56 +210,58 @@ export const MediaVaultScreen: React.FC<RootStackScreenProps<'MediaVault'>> = ({
 
       {/* Content Area */}
       {isLoading ? (
-        <LoadingState message="Accessing media vault..." />
+        <SkeletonFile count={4} />
       ) : error && filteredFiles.length === 0 ? (
         <ErrorState message={error} onRetry={refresh} />
       ) : (
-        <FlatList
-          data={filteredFiles}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <FileCard
-              file={item}
-              currentUserId={currentUserId}
-              isExpired={isExpired}
-              onOpen={handleOpenFile}
-              onDelete={handleDeleteFile}
-            />
-          )}
-          contentContainerStyle={[
-            styles.listContent,
-            { paddingBottom: insets.bottom + 80 },
-          ]}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={refresh}
-              tintColor="#10B981"
-            />
-          }
-          ListEmptyComponent={
-            <EmptyState
-              icon={<FileGenericIcon size={48} color="#10B981" />}
-              title={
-                activeFilter === 'ALL'
-                  ? 'Media Vault is Empty'
-                  : activeFilter === 'IMAGES'
-                  ? 'No Images in Vault'
-                  : 'No Documents in Vault'
-              }
-              description={
-                activeFilter === 'ALL'
-                  ? 'No private documents or media attachments have been uploaded to this temporary space yet.'
-                  : activeFilter === 'IMAGES'
-                  ? 'No image files found in this temporary space.'
-                  : 'No document or PDF files found in this temporary space.'
-              }
-              actionLabel={!isExpired ? 'Upload File' : undefined}
-              onAction={() => setUploadModalVisible(true)}
-            />
-          }
-        />
+        <FadeInContent style={{ flex: 1 }}>
+          <FlatList
+            data={filteredFiles}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <FileCard
+                file={item}
+                currentUserId={currentUserId}
+                isExpired={isExpired}
+                onOpen={handleOpenFile}
+                onDelete={handleDeleteFile}
+              />
+            )}
+            contentContainerStyle={[
+              styles.listContent,
+              { paddingBottom: insets.bottom + 80 },
+            ]}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={refresh}
+                tintColor="#10B981"
+              />
+            }
+            ListEmptyComponent={
+              <EmptyState
+                icon={<FileGenericIcon size={48} color="#10B981" />}
+                title={
+                  activeFilter === 'ALL'
+                    ? 'Media Vault is Empty'
+                    : activeFilter === 'IMAGES'
+                    ? 'No Images in Vault'
+                    : 'No Documents in Vault'
+                }
+                description={
+                  activeFilter === 'ALL'
+                    ? 'No private documents or media attachments have been uploaded to this temporary space yet.'
+                    : activeFilter === 'IMAGES'
+                    ? 'No image files found in this temporary space.'
+                    : 'No document or PDF files found in this temporary space.'
+                }
+                actionLabel={!isExpired ? 'Upload File' : undefined}
+                onAction={() => setUploadModalVisible(true)}
+              />
+            }
+          />
+        </FadeInContent>
       )}
 
       {/* Floating Action Button (FAB) */}

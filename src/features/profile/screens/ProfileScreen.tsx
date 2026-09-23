@@ -19,6 +19,7 @@ import Input from '../../../components/Input';
 import Button from '../../../components/Button';
 import Card from '../../../components/Card';
 import TimeGlyph from '../../auth/components/TimeGlyph';
+import { CloseIcon } from '../../../components/icons/CommonIcons';
 
 export const ProfileScreen: React.FC = () => {
   const { profile, updateProfile, signOut, isLoading } = useAuth();
@@ -136,7 +137,7 @@ export const ProfileScreen: React.FC = () => {
               accessibilityRole="button"
               accessibilityLabel="Dismiss success notification"
             >
-              <Text style={styles.successDismissText}>✕</Text>
+              <CloseIcon size={14} color="#10B981" />
             </Pressable>
           </View>
         )}
@@ -150,7 +151,7 @@ export const ProfileScreen: React.FC = () => {
               accessibilityRole="button"
               accessibilityLabel="Dismiss error notification"
             >
-              <Text style={styles.errorDismissText}>✕</Text>
+              <CloseIcon size={14} color="#EF4444" />
             </Pressable>
           </View>
         )}

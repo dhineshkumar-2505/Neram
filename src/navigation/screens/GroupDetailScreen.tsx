@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
-import { Screen, Text, LoadingState, ErrorState, Button } from '../../components';
+import {
+  Screen,
+  Text,
+  ErrorState,
+  Button,
+  SkeletonGroupDetail,
+  FadeInContent,
+} from '../../components';
 import { tokens } from '../../design';
 import { useAuth } from '../../hooks/useAuth';
 import {
@@ -57,8 +64,8 @@ export const GroupDetailScreen: React.FC<RootStackScreenProps<'GroupDetail'>> = 
 
   if (loading) {
     return (
-      <Screen contentContainerStyle={styles.centerContainer}>
-        <LoadingState message="Entering temporary space..." />
+      <Screen>
+        <SkeletonGroupDetail />
       </Screen>
     );
   }
@@ -87,8 +94,9 @@ export const GroupDetailScreen: React.FC<RootStackScreenProps<'GroupDetail'>> = 
 
   return (
     <Screen scrollable={false} contentContainerStyle={styles.screenContainer}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
+      <FadeInContent>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl
@@ -178,8 +186,9 @@ export const GroupDetailScreen: React.FC<RootStackScreenProps<'GroupDetail'>> = 
           />
         </View>
       </ScrollView>
-    </Screen>
-  );
+    </FadeInContent>
+  </Screen>
+);
 };
 
 const styles = StyleSheet.create({

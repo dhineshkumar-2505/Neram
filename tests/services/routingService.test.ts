@@ -64,7 +64,7 @@ describe('RoutingService', () => {
     });
 
     expect(fetchSpy).toHaveBeenCalledTimes(1);
-    const [calledUrl, calledInit] = fetchSpy.mock.calls[0];
+    const [calledUrl, calledInit] = fetchSpy.mock.calls[0]!;
     expect(calledUrl).toBe(mockBaseUrl);
     expect(calledInit?.method).toBe('POST');
 
@@ -104,7 +104,7 @@ describe('RoutingService', () => {
     });
 
     expect(fetchSpy).toHaveBeenCalledTimes(1);
-    const [, calledInit] = fetchSpy.mock.calls[0];
+    const [, calledInit] = fetchSpy.mock.calls[0]!;
     const parsedBody = JSON.parse(calledInit?.body as string);
     expect(parsedBody.costing).toBe('pedestrian');
     expect(result.route?.profile).toBe('pedestrian');

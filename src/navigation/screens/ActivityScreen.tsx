@@ -7,7 +7,8 @@ import {
   Pressable,
   ActivityIndicator,
 } from 'react-native';
-import { Screen, Text, EmptyState, ErrorState, LoadingState } from '../../components';
+import { Screen, Text, EmptyState, ErrorState } from '../../components';
+import { SkeletonActivity, FadeInContent } from '../../components/skeleton';
 import { tokens } from '../../design';
 import { useAuth } from '../../hooks/useAuth';
 import {
@@ -82,44 +83,46 @@ export const ActivityScreen: React.FC<MainTabScreenProps<'ActivityTab'>> = ({
 
       {/* Main Content Area */}
       {isLoading ? (
-        <LoadingState message="Connecting to secure activity stream..." />
+        <SkeletonActivity count={5} />
       ) : error ? (
         <ErrorState message={error} onRetry={refresh} />
       ) : (
-        <FlatList
-          data={notifications}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <NotificationCard
-              notification={item}
-              onPress={handlePressNotification}
-            />
-          )}
-          onEndReached={loadMore}
-          onEndReachedThreshold={0.3}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={refresh}
-              tintColor="#818CF8"
-              colors={['#818CF8']}
-            />
-          }
-          ListFooterComponent={
-            isLoadingMore ? (
-              <View style={styles.footerLoader}>
-                <ActivityIndicator size="small" color="#818CF8" />
-              </View>
-            ) : null
-          }
-          ListEmptyComponent={
-            <EmptyState
-              title="All Caught Up"
-              description="No active alerts. Friend requests, group invitations, and space lifecycle updates will appear here in realtime."
-            />
-          }
-          contentContainerStyle={styles.listContent}
-        />
+        <FadeInContent style={{ flex: 1 }}>
+          <FlatList
+            data={notifications}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <NotificationCard
+                notification={item}
+                onPress={handlePressNotification}
+              />
+            )}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.3}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={refresh}
+                tintColor="#818CF8"
+                colors={['#818CF8']}
+              />
+            }
+            ListFooterComponent={
+              isLoadingMore ? (
+                <View style={styles.footerLoader}>
+                  <ActivityIndicator size="small" color="#818CF8" />
+                </View>
+              ) : null
+            }
+            ListEmptyComponent={
+              <EmptyState
+                title="All Caught Up"
+                description="No active alerts. Friend requests, group invitations, and space lifecycle updates will appear here in realtime."
+              />
+            }
+            contentContainerStyle={styles.listContent}
+          />
+        </FadeInContent>
       )}
     </Screen>
   );

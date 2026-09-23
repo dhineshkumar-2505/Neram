@@ -3,6 +3,7 @@ import { View, StyleSheet, Pressable, Image, Alert } from 'react-native';
 import { tokens } from '../../../design';
 import type { FriendProfile } from '../../../types/friends';
 import Text from '../../../components/Text';
+import { MoreIcon } from '../../../components/icons/CommonIcons';
 
 export interface FriendItemProps {
   friend: FriendProfile;
@@ -88,7 +89,7 @@ export const FriendItem: React.FC<FriendItemProps> = ({
         accessibilityRole="button"
         accessibilityLabel={`Options for ${friend.displayName}`}
       >
-        <Text style={styles.moreButtonText}>•••</Text>
+        <MoreIcon size={18} color="#94A3B8" />
       </Pressable>
     </View>
   );

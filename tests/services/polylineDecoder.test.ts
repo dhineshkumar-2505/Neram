@@ -54,12 +54,12 @@ describe('polylineDecoder', () => {
 
     expect(decoded.length).toBe(3);
     // Note: decodePolyline returns [longitude, latitude] GeoJSON format
-    expect(decoded[0][0]).toBeCloseTo(80.2707, 4);
-    expect(decoded[0][1]).toBeCloseTo(13.0827, 4);
-    expect(decoded[1][0]).toBeCloseTo(80.2750, 4);
-    expect(decoded[1][1]).toBeCloseTo(13.0850, 4);
-    expect(decoded[2][0]).toBeCloseTo(80.2800, 4);
-    expect(decoded[2][1]).toBeCloseTo(13.0900, 4);
+    expect(decoded[0]![0]).toBeCloseTo(80.2707, 4);
+    expect(decoded[0]![1]).toBeCloseTo(13.0827, 4);
+    expect(decoded[1]![0]).toBeCloseTo(80.2750, 4);
+    expect(decoded[1]![1]).toBeCloseTo(13.0850, 4);
+    expect(decoded[2]![0]).toBeCloseTo(80.2800, 4);
+    expect(decoded[2]![1]).toBeCloseTo(13.0900, 4);
   });
 
   it('supports precision 5 encoding when requested', () => {
@@ -67,7 +67,7 @@ describe('polylineDecoder', () => {
     // Standard polyline encoding for this point in precision 5 is "_p~iF~ps|U"
     const decoded = decodePolyline('_p~iF~ps|U', 5);
     expect(decoded.length).toBe(1);
-    expect(decoded[0][0]).toBeCloseTo(-120.2, 4); // lng
-    expect(decoded[0][1]).toBeCloseTo(38.5, 4);   // lat
+    expect(decoded[0]![0]).toBeCloseTo(-120.2, 4); // lng
+    expect(decoded[0]![1]).toBeCloseTo(38.5, 4);   // lat
   });
 });

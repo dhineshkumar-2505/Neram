@@ -252,10 +252,10 @@ describe('LocationSessionScreen', () => {
   it('renders user arrived banner and arrived badge when status is ARRIVED', async () => {
     const arrivedParticipants: SessionParticipant[] = [
       {
-        ...mockParticipants[0],
+        ...(mockParticipants[0] as SessionParticipant),
       },
       {
-        ...mockParticipants[1],
+        ...(mockParticipants[1] as SessionParticipant),
         status: 'ARRIVED',
       },
     ];

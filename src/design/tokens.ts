@@ -77,6 +77,26 @@ export const colors = {
     danger: '#DC2626',
     info: '#2563EB',
   },
+
+  // Skeleton Loader Theme (Obsidian Dark)
+  skeleton: {
+    base: '#161F30',
+    highlight: '#222F46',
+    border: 'rgba(255, 255, 255, 0.05)',
+  },
+
+  // Network Connectivity Signals
+  network: {
+    offlineBg: 'rgba(239, 68, 68, 0.15)',
+    offlineBorder: '#EF4444',
+    offlineText: '#FCA5A5',
+    reconnectingBg: 'rgba(245, 158, 11, 0.15)',
+    reconnectingBorder: '#F59E0B',
+    reconnectingText: '#FCD34D',
+    connectedBg: 'rgba(16, 185, 129, 0.15)',
+    connectedBorder: '#10B981',
+    connectedText: '#6EE7B7',
+  },
 } as const;
 
 export const typography = {

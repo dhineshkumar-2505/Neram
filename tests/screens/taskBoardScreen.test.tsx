@@ -99,12 +99,12 @@ describe('TaskBoardScreen', () => {
       isReadOnly: false,
     });
 
-    const { getByText } = render(
+    const { getByTestId } = render(
       <TaskBoardScreen navigation={mockNavigation} route={mockRoute} />,
     );
 
     await waitFor(() => {
-      expect(getByText('Connecting to secure task board...')).toBeTruthy();
+      expect(getByTestId('skeleton-task')).toBeTruthy();
     });
   });
 

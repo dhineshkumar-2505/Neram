@@ -1,7 +1,9 @@
-import React from 'react';
-import { View, StyleSheet, Pressable, Image } from 'react-native';
+import React, { useRef } from 'react';
+import { View, StyleSheet, Pressable, Image, Animated } from 'react-native';
 import { tokens } from '../../../design';
 import Text from '../../../components/Text';
+import { haptics } from '../../../utils/haptics';
+import { useReducedMotion } from '../../../hooks/useReducedMotion';
 import {
   CheckCircleIcon,
   CircleIcon,
@@ -99,9 +101,27 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   onDelete,
   isReadOnly = false,
 }) => {
+  const prefersReducedMotion = useReducedMotion();
+  const scaleAnim = useRef(new Animated.Value(1)).current;
   const isCompleted = task.status === 'COMPLETED';
   const priorityTheme = PRIORITY_THEMES[task.priority] || PRIORITY_THEMES.MEDIUM;
   const deadlineInfo = formatDeadline(task.deadline, isCompleted);
+
+  const handleToggle = () => {
+    if (isReadOnly) return;
+    if (isCompleted) {
+      haptics.selection();
+    } else {
+      haptics.success();
+    }
+    if (!prefersReducedMotion) {
+      Animated.sequence([
+        Animated.timing(scaleAnim, { toValue: 1.25, duration: 90, useNativeDriver: true }),
+        Animated.spring(scaleAnim, { toValue: 1, friction: 5, tension: 200, useNativeDriver: true }),
+      ]).start();
+    }
+    onToggleStatus(task.id);
+  };
 
   return (
     <Pressable
@@ -119,7 +139,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       <View style={styles.mainRow}>
         {/* Tactile Checkmark Button */}
         <Pressable
-          onPress={() => !isReadOnly && onToggleStatus(task.id)}
+          onPress={handleToggle}
           disabled={isReadOnly}
           hitSlop={10}
           style={styles.checkButton}
@@ -127,7 +147,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           accessibilityState={{ checked: isCompleted, disabled: isReadOnly }}
           testID={`task-check-${task.id}`}
         >
-          {isCompleted ? <CheckCircleIcon size={24} /> : <CircleIcon size={24} />}
+          <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+            {isCompleted ? <CheckCircleIcon size={24} /> : <CircleIcon size={24} />}
+          </Animated.View>
         </Pressable>
 
         {/* Task Details */}

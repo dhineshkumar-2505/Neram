@@ -97,12 +97,12 @@ describe('GroupDetailScreen Component', () => {
       group: mockGroup,
     });
 
-    const { getByText, getAllByText, findByText } = render(
+    const { getByTestId, getByText, getAllByText, findByText } = render(
       <GroupDetailScreen route={mockRoute} navigation={mockNavigation} />,
     );
 
     // Initial loading indicator
-    expect(getByText(/Entering temporary space/i)).toBeTruthy();
+    expect(getByTestId('skeleton-group-detail')).toBeTruthy();
 
     // Settle into group interior
     const title = await findByText('Summit Trail Hike');

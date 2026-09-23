@@ -9,6 +9,7 @@ import {
 import * as Haptics from 'expo-haptics';
 import { tokens } from '../../../design';
 import Text from '../../../components/Text';
+import { CheckIcon } from '../../../components/icons/CommonIcons';
 import { friendsService } from '../../friends/services/friendsService';
 import type { FriendProfile } from '../../../types/friends';
 
@@ -221,11 +222,7 @@ export const FriendInviteSelector: React.FC<FriendInviteSelectorProps> = ({
                     isSelected && styles.checkboxSelected,
                   ]}
                 >
-                  {isSelected && (
-                    <Text weight="bold" style={styles.checkmarkIcon}>
-                      ✓
-                    </Text>
-                  )}
+                  {isSelected && <CheckIcon size={12} color="#FFFFFF" />}
                 </View>
               </Pressable>
             );

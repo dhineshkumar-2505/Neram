@@ -12,7 +12,7 @@ describe('useValhallaRoute hook', () => {
     longitude: 80.2750,
     title: 'Central Station',
     locationName: 'Central Station',
-    source: 'SESSION',
+    source: 'SESSION_DESTINATION',
   };
 
   const sampleRoute: CalculatedRoute = {
@@ -113,8 +113,8 @@ describe('useValhallaRoute hook', () => {
 
     let currentOrigin = { latitude: 13.082700, longitude: 80.270700 };
 
-    const { rerender } = renderHook(
-      ({ origin }) =>
+    const { rerender } = renderHook<any, { origin: any }>(
+      ({ origin }: { origin: any }) =>
         useValhallaRoute({
           origin,
           destination: mockDestination,
@@ -141,8 +141,8 @@ describe('useValhallaRoute hook', () => {
 
     let currentOrigin = { latitude: 13.082700, longitude: 80.270700 };
 
-    const { rerender } = renderHook(
-      ({ origin }) =>
+    const { rerender } = renderHook<any, { origin: any }>(
+      ({ origin }: { origin: any }) =>
         useValhallaRoute({
           origin,
           destination: mockDestination,

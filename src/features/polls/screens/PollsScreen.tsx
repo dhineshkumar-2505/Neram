@@ -9,7 +9,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { tokens } from '../../../design';
 import Text from '../../../components/Text';
-import { LoadingState, ErrorState, EmptyState } from '../../../components';
+import { ErrorState, EmptyState } from '../../../components';
+import { SkeletonPoll, FadeInContent } from '../../../components/skeleton';
 import { useAuth } from '../../../hooks/useAuth';
 import type { GroupDetailedRecord } from '../../groups/types';
 import { groupService } from '../../groups/services/groupService';
@@ -185,7 +186,7 @@ export const PollsScreen: React.FC<RootStackScreenProps<'Polls'>> = ({
 
       {/* Main Content */}
       {isLoading ? (
-        <LoadingState message="Synchronizing polls..." />
+        <SkeletonPoll count={3} />
       ) : error && polls.length === 0 ? (
         <ErrorState message={error} onRetry={refresh} />
       ) : polls.length === 0 ? (
@@ -201,30 +202,32 @@ export const PollsScreen: React.FC<RootStackScreenProps<'Polls'>> = ({
           }
         />
       ) : (
-        <FlatList
-          testID="polls-list"
-          data={polls}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <PollCard
-              poll={item}
-              currentUserId={currentUserId}
-              isExpired={isExpired}
-              onVote={(pollId, optionId) => vote(pollId, optionId)}
-              onClosePoll={(pollId) => closePoll(pollId)}
-              onDeletePoll={(pollId) => deletePoll(pollId)}
-            />
-          )}
-          contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 90 }]}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={refresh}
-              tintColor="#6366F1"
-              colors={['#6366F1']}
-            />
-          }
-        />
+        <FadeInContent style={{ flex: 1 }}>
+          <FlatList
+            testID="polls-list"
+            data={polls}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <PollCard
+                poll={item}
+                currentUserId={currentUserId}
+                isExpired={isExpired}
+                onVote={(pollId, optionId) => vote(pollId, optionId)}
+                onClosePoll={(pollId) => closePoll(pollId)}
+                onDeletePoll={(pollId) => deletePoll(pollId)}
+              />
+            )}
+            contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 90 }]}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={refresh}
+                tintColor="#6366F1"
+                colors={['#6366F1']}
+              />
+            }
+          />
+        </FadeInContent>
       )}
 
       {/* Floating Action Button (FAB) */}

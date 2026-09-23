@@ -69,11 +69,11 @@ describe('ActivityScreen Component', () => {
       markAllAsRead: mockMarkAllAsRead,
     });
 
-    const { getByText } = render(
+    const { getByTestId } = render(
       <ActivityScreen navigation={mockNavigation} route={mockRoute} />,
     );
 
-    expect(getByText('Connecting to secure activity stream...')).toBeTruthy();
+    expect(getByTestId('skeleton-activity')).toBeTruthy();
   });
 
   it('renders ErrorState with retry button when error is present', () => {

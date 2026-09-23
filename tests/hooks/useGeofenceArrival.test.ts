@@ -17,7 +17,7 @@ describe('useGeofenceArrival hook', () => {
     longitude: 80.270700,
     title: 'Meeting Cafe',
     locationName: 'Meeting Cafe',
-    source: 'SESSION',
+    source: 'SESSION_DESTINATION',
   };
 
   beforeEach(() => {
@@ -112,8 +112,8 @@ describe('useGeofenceArrival hook', () => {
       accuracy: 10,
     };
 
-    const { result, rerender } = renderHook(
-      ({ fix }) =>
+    const { result, rerender } = renderHook<any, { fix: any }>(
+      ({ fix }: { fix: any }) =>
         useGeofenceArrival({
           currentFix: fix,
           destination: mockDestination,

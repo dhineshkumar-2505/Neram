@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { View, StyleSheet, Pressable, Animated } from 'react-native';
 import { tokens } from '../../../design';
 import Text from '../../../components/Text';
+import { useReducedMotion } from '../../../hooks/useReducedMotion';
 import { CheckIcon, ClockIcon, ReplyIcon, TrashIcon } from './ChatIcons';
 import type { ChatMessage } from '../types';
 
@@ -37,6 +38,30 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   onDelete,
   onRetry,
 }) => {
+  const prefersReducedMotion = useReducedMotion();
+  const fadeAnim = useRef(new Animated.Value(prefersReducedMotion ? 1 : 0)).current;
+  const transY = useRef(new Animated.Value(prefersReducedMotion ? 0 : 6)).current;
+
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      fadeAnim.setValue(1);
+      transY.setValue(0);
+    } else {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(transY, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [prefersReducedMotion, fadeAnim, transY]);
+
   const timeFormatted = formatMessageTime(message.createdAt);
   const senderName =
     message.sender?.displayName ||
@@ -46,10 +71,14 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   const isFailed = message.status === 'FAILED';
 
   return (
-    <View
+    <Animated.View
       style={[
         styles.rowContainer,
         isCurrentUser ? styles.rowOutgoing : styles.rowIncoming,
+        {
+          opacity: fadeAnim,
+          transform: [{ translateY: transY }],
+        },
       ]}
       testID={`message-bubble-${message.id}`}
     >
@@ -203,7 +232,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           </Pressable>
         )}
       </View>
-    </View>
+    </Animated.View>
   );
 };
 

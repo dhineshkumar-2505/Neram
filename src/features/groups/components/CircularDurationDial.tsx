@@ -5,11 +5,14 @@ import {
   Pressable,
   PanResponder,
   GestureResponderEvent,
+  PanResponderGestureState,
+  Animated,
 } from 'react-native';
 import Svg, { Circle, Path, Line, G } from 'react-native-svg';
-import * as Haptics from 'expo-haptics';
 import { tokens } from '../../../design';
 import Text from '../../../components/Text';
+import { haptics } from '../../../utils/haptics';
+import { useReducedMotion } from '../../../hooks/useReducedMotion';
 import {
   DurationUnit,
   DurationValue,
@@ -55,6 +58,9 @@ export const CircularDurationDial: React.FC<CircularDurationDialProps> = ({
   const [hours, setHours] = useState<number>(value.hours);
   const [isInteracting, setIsInteracting] = useState<boolean>(false);
 
+  const prefersReducedMotion = useReducedMotion();
+  const bounceAnim = useRef(new Animated.Value(1)).current;
+  const isAtBoundaryRef = useRef<boolean>(false);
   const lastHapticValueRef = useRef<number>(-1);
 
   // Sync internal state if prop changes from outside
@@ -77,20 +83,24 @@ export const CircularDurationDial: React.FC<CircularDurationDialProps> = ({
 
   const maxForActiveUnit = useMemo(() => DURATION_LIMITS[activeUnit].max, [activeUnit]);
 
+  const triggerBoundaryBounce = useCallback(() => {
+    if (prefersReducedMotion) return;
+    Animated.sequence([
+      Animated.timing(bounceAnim, { toValue: 1.025, duration: 60, useNativeDriver: true }),
+      Animated.spring(bounceAnim, { toValue: 1, friction: 6, tension: 180, useNativeDriver: true }),
+    ]).start();
+  }, [bounceAnim, prefersReducedMotion]);
+
   const triggerHapticTick = useCallback(() => {
-    try {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    } catch {
-      // Graceful fallback for environments without haptics
-    }
+    haptics.tick();
   }, []);
 
   const triggerHapticConfirm = useCallback(() => {
-    try {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-    } catch {
-      // Graceful fallback
-    }
+    haptics.confirm();
+  }, []);
+
+  const triggerHapticBoundary = useCallback(() => {
+    haptics.boundary();
   }, []);
 
   const emitChange = useCallback(
@@ -117,6 +127,16 @@ export const CircularDurationDial: React.FC<CircularDurationDialProps> = ({
   const updateActiveUnitValue = useCallback(
     (newVal: number) => {
       const clamped = clampDurationUnit(activeUnit, newVal);
+      const isBoundaryHit = newVal <= 0 || newVal >= maxForActiveUnit;
+
+      if (isBoundaryHit && !isAtBoundaryRef.current && (clamped === 0 || clamped === maxForActiveUnit)) {
+        triggerHapticBoundary();
+        triggerBoundaryBounce();
+        isAtBoundaryRef.current = true;
+      } else if (!isBoundaryHit) {
+        isAtBoundaryRef.current = false;
+      }
+
       if (clamped === currentUnitValue) return;
 
       if (clamped !== lastHapticValueRef.current) {
@@ -139,7 +159,18 @@ export const CircularDurationDial: React.FC<CircularDurationDialProps> = ({
           break;
       }
     },
-    [activeUnit, currentUnitValue, emitChange, hours, days, months, triggerHapticTick],
+    [
+      activeUnit,
+      currentUnitValue,
+      emitChange,
+      hours,
+      days,
+      months,
+      maxForActiveUnit,
+      triggerHapticBoundary,
+      triggerBoundaryBounce,
+      triggerHapticTick,
+    ],
   );
 
   // Angular gesture tracking using atan2
@@ -173,6 +204,7 @@ export const CircularDurationDial: React.FC<CircularDurationDialProps> = ({
         onMoveShouldSetPanResponder: () => !disabled,
         onPanResponderGrant: (evt: GestureResponderEvent) => {
           setIsInteracting(true);
+          isAtBoundaryRef.current = false;
           const { locationX, locationY } = evt.nativeEvent;
           handleTouchAt(locationX, locationY);
         },
@@ -180,17 +212,44 @@ export const CircularDurationDial: React.FC<CircularDurationDialProps> = ({
           const { locationX, locationY } = evt.nativeEvent;
           handleTouchAt(locationX, locationY);
         },
-        onPanResponderRelease: () => {
+        onPanResponderRelease: (
+          evt: GestureResponderEvent,
+          gestureState: PanResponderGestureState,
+        ) => {
           setIsInteracting(false);
+          isAtBoundaryRef.current = false;
+
+          // Gesture inertia dampening on release
+          const speed = Math.hypot(gestureState.vx, gestureState.vy);
+          if (speed > 0.4 && !prefersReducedMotion) {
+            const locX = evt.nativeEvent.locationX ?? CENTER;
+            const locY = evt.nativeEvent.locationY ?? CENTER;
+            const rx = locX - CENTER;
+            const ry = locY - CENTER;
+            // Tangential cross-product indicates clockwise vs counterclockwise swipe
+            const cross = rx * gestureState.vy - ry * gestureState.vx;
+            const dir = cross > 0 ? 1 : -1;
+            const extraSteps = Math.min(3, Math.max(1, Math.round(speed * 1.5))) * dir;
+            updateActiveUnitValue(currentUnitValue + extraSteps);
+          }
+
           triggerHapticConfirm();
           lastHapticValueRef.current = -1;
         },
         onPanResponderTerminate: () => {
           setIsInteracting(false);
+          isAtBoundaryRef.current = false;
           lastHapticValueRef.current = -1;
         },
       }),
-    [disabled, handleTouchAt, triggerHapticConfirm],
+    [
+      disabled,
+      handleTouchAt,
+      triggerHapticConfirm,
+      prefersReducedMotion,
+      currentUnitValue,
+      updateActiveUnitValue,
+    ],
   );
 
   const handleStepIncrement = () => {
@@ -319,7 +378,8 @@ export const CircularDurationDial: React.FC<CircularDurationDialProps> = ({
         accessibilityLabel={`Duration Dial: ${currentUnitValue} ${activeUnit}`}
         accessibilityValue={{ min: 0, max: maxForActiveUnit, now: currentUnitValue }}
       >
-        <Svg width={DIAL_SIZE} height={DIAL_SIZE} viewBox={`0 0 ${DIAL_SIZE} ${DIAL_SIZE}`}>
+        <Animated.View style={{ transform: [{ scale: bounceAnim }] }}>
+          <Svg width={DIAL_SIZE} height={DIAL_SIZE} viewBox={`0 0 ${DIAL_SIZE} ${DIAL_SIZE}`}>
           {/* Subtle Outer Boundary Ring */}
           <Circle
             cx={CENTER}
@@ -403,6 +463,7 @@ export const CircularDurationDial: React.FC<CircularDurationDialProps> = ({
             />
           )}
         </Svg>
+        </Animated.View>
 
         {/* Center Digital Display & Stepper Controls */}
         <View style={styles.centerContainer} pointerEvents="box-none">

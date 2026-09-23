@@ -13,6 +13,7 @@ import { GoogleIcon } from '../components/GoogleIcon';
 import { TimeGlyph } from '../components/TimeGlyph';
 import { signInWithGoogle } from '../../../services/auth/googleAuth';
 import Text from '../../../components/Text';
+import { CloseIcon } from '../../../components/icons/CommonIcons';
 
 export interface LoginScreenProps {
   onSuccess?: () => void;
@@ -132,7 +133,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSuccess }) => {
               accessibilityRole="button"
               accessibilityLabel="Dismiss error"
             >
-              <Text style={styles.errorDismissText}>✕</Text>
+              <CloseIcon size={14} color="#EF4444" />
             </Pressable>
           </View>
         )}

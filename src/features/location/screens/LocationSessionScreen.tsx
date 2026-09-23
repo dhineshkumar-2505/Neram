@@ -10,9 +10,9 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { tokens } from '../../../design';
 import Text from '../../../components/Text';
-import LoadingState from '../../../components/LoadingState';
 import EmptyState from '../../../components/EmptyState';
 import ErrorState from '../../../components/ErrorState';
+import { SkeletonOuting, FadeInContent } from '../../../components/skeleton';
 import { useAuth } from '../../../hooks/useAuth';
 import { groupService } from '../../groups/services/groupService';
 import { useGroupLifecycle } from '../../groups/hooks/useGroupLifecycle';
@@ -284,12 +284,13 @@ export const LocationSessionScreen: React.FC<RootStackScreenProps<'LocationSessi
 
       {/* Main Content Area */}
       {isLoading ? (
-        <LoadingState message="Synchronizing outing rendezvous..." />
+        <SkeletonOuting />
       ) : error && !activeSession ? (
         <ErrorState message={error} onRetry={refresh} />
       ) : (
-        <ScrollView
-          showsVerticalScrollIndicator={false}
+        <FadeInContent style={{ flex: 1 }}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
           contentContainerStyle={[
             styles.scrollContent,
             { paddingBottom: insets.bottom + 40 },
@@ -611,6 +612,7 @@ export const LocationSessionScreen: React.FC<RootStackScreenProps<'LocationSessi
             </View>
           )}
         </ScrollView>
+        </FadeInContent>
       )}
 
       {/* Educational Opt-In Modal */}

@@ -1,7 +1,9 @@
-import React from 'react';
-import { View, StyleSheet, Pressable, Alert } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { View, StyleSheet, Pressable, Alert, Animated, Easing } from 'react-native';
 import { tokens } from '../../../design';
 import Text from '../../../components/Text';
+import { haptics } from '../../../utils/haptics';
+import { useReducedMotion } from '../../../hooks/useReducedMotion';
 import {
   RadioCheckedIcon,
   RadioUncheckedIcon,
@@ -36,6 +38,53 @@ function formatRelativeTime(dateString: string): string {
   return `${diffDays}d ago`;
 }
 
+interface AnimatedProgressBarProps {
+  percentage: number;
+  isUserVoted: boolean;
+  isWinner: boolean;
+  isClosed: boolean;
+  prefersReducedMotion: boolean;
+}
+
+const AnimatedProgressBar: React.FC<AnimatedProgressBarProps> = ({
+  percentage,
+  isUserVoted,
+  isWinner,
+  isClosed,
+  prefersReducedMotion,
+}) => {
+  const animWidth = useRef(new Animated.Value(prefersReducedMotion ? percentage : 0)).current;
+
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      animWidth.setValue(percentage);
+    } else {
+      Animated.timing(animWidth, {
+        toValue: percentage,
+        duration: 350,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: false,
+      }).start();
+    }
+  }, [percentage, prefersReducedMotion, animWidth]);
+
+  return (
+    <Animated.View
+      style={[
+        styles.percentageBar,
+        {
+          width: animWidth.interpolate({
+            inputRange: [0, 100],
+            outputRange: ['0%', '100%'],
+          }),
+        },
+        isUserVoted && styles.percentageBarVoted,
+        isWinner && isClosed && styles.percentageBarWinner,
+      ]}
+    />
+  );
+};
+
 export const PollCard: React.FC<PollCardProps> = ({
   poll,
   currentUserId,
@@ -43,6 +92,7 @@ export const PollCard: React.FC<PollCardProps> = ({
   onVote,
   onClosePoll,
 }) => {
+  const prefersReducedMotion = useReducedMotion();
   const isPastExpiry = Boolean(
     poll.expiresAt && new Date(poll.expiresAt).getTime() <= Date.now(),
   );
@@ -66,6 +116,7 @@ export const PollCard: React.FC<PollCardProps> = ({
       ]);
       return;
     }
+    haptics.selection();
     onVote(poll.id, optionId);
   };
 
@@ -166,14 +217,13 @@ export const PollCard: React.FC<PollCardProps> = ({
             accessibilityState={{ checked: option.isUserVoted }}
             accessibilityLabel={`${option.optionText}, ${option.percentage}% with ${option.voteCount} votes`}
           >
-            {/* Percentage Bar Fill */}
-            <View
-              style={[
-                styles.percentageBar,
-                { width: `${option.percentage}%` },
-                option.isUserVoted && styles.percentageBarVoted,
-                option.isWinner && isClosed && styles.percentageBarWinner,
-              ]}
+            {/* Animated Percentage Bar Fill */}
+            <AnimatedProgressBar
+              percentage={option.percentage}
+              isUserVoted={option.isUserVoted}
+              isWinner={Boolean(option.isWinner)}
+              isClosed={isClosed}
+              prefersReducedMotion={prefersReducedMotion}
             />
 
             <View style={styles.optionContent}>

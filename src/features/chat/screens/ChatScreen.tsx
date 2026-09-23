@@ -11,6 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { tokens } from '../../../design';
 import Text from '../../../components/Text';
+import { SkeletonChat, FadeInContent, BackIcon } from '../../../components';
 import { useAuth } from '../../../hooks/useAuth';
 import { useGroupLifecycle } from '../../groups/hooks/useGroupLifecycle';
 import { groupService } from '../../groups/services/groupService';
@@ -249,9 +250,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
           accessibilityLabel="Back"
           hitSlop={8}
         >
-          <Text variant="title2" style={styles.backText}>
-            ‹
-          </Text>
+          <BackIcon size={22} color="#F8FAFC" />
         </Pressable>
 
         <View style={styles.headerTitleContainer}>
@@ -283,15 +282,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         {isLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#818CF8" />
-            <Text variant="caption" style={styles.loadingText}>
-              Connecting to secure stream...
-            </Text>
-          </View>
+          <SkeletonChat />
         ) : (
-          <FlatList
-            data={messages}
+          <FadeInContent>
+            <FlatList
+              data={messages}
             keyExtractor={(item) => item.tempId || item.id}
             renderItem={({ item }) => (
               <MessageBubble
@@ -328,6 +323,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
             }
             contentContainerStyle={styles.listContent}
           />
+          </FadeInContent>
         )}
 
         {/* Realtime Typing Indicator */}

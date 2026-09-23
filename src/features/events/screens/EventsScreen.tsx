@@ -10,9 +10,9 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { tokens } from '../../../design';
 import Text from '../../../components/Text';
-import LoadingState from '../../../components/LoadingState';
 import EmptyState from '../../../components/EmptyState';
 import ErrorState from '../../../components/ErrorState';
+import { SkeletonEvent, FadeInContent } from '../../../components/skeleton';
 import { useAuth } from '../../../hooks/useAuth';
 import { groupService } from '../../groups/services/groupService';
 import { useGroupLifecycle } from '../../groups/hooks/useGroupLifecycle';
@@ -185,63 +185,65 @@ export const EventsScreen: React.FC<RootStackScreenProps<'Events'>> = ({
 
       {/* Main Content */}
       {isLoading ? (
-        <LoadingState message="Synchronizing itinerary events..." />
+        <SkeletonEvent count={3} />
       ) : error && filteredEvents.length === 0 ? (
         <ErrorState message={error} onRetry={refresh} />
       ) : (
-        <FlatList
-          data={filteredEvents}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <EventCard
-              event={item}
-              currentUserId={currentUserId}
-              isExpired={isExpired}
-              onEdit={(evt) => setEditingEvent(evt)}
-              onDelete={handleDeleteEvent}
-              onExportCalendar={handleExportCalendar}
-            />
-          )}
-          contentContainerStyle={[
-            styles.listContent,
-            { paddingBottom: insets.bottom + 80 },
-          ]}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={refresh}
-              tintColor={tokens.colors.primary.default}
-            />
-          }
-          ListHeaderComponent={
-            activeFilter === 'ALL' || activeFilter === 'UPCOMING' ? (
-              <UpcomingMilestoneHero
-                event={heroEvent}
-                onPress={(evt) => {
-                  if (!isExpired) setEditingEvent(evt);
-                }}
+        <FadeInContent style={{ flex: 1 }}>
+          <FlatList
+            data={filteredEvents}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <EventCard
+                event={item}
+                currentUserId={currentUserId}
+                isExpired={isExpired}
+                onEdit={(evt) => setEditingEvent(evt)}
+                onDelete={handleDeleteEvent}
+                onExportCalendar={handleExportCalendar}
               />
-            ) : null
-          }
-          ListEmptyComponent={
-            <EmptyState
-              icon={<CalendarIcon size={48} color="#EC4899" />}
-              title="No Itinerary Events"
-              description={
-                activeFilter === 'ALL'
-                  ? 'No events or rendezvous points have been scheduled yet. Add your first milestone.'
-                  : activeFilter === 'UPCOMING'
-                  ? 'No upcoming events scheduled. The space itinerary is currently clear.'
-                  : activeFilter === 'MILESTONES'
-                  ? 'No key milestones designated for this space.'
-                  : 'No past events recorded in the archive.'
-              }
-              actionLabel={!isExpired && activeFilter !== 'PAST' ? 'Schedule Event' : undefined}
-              onAction={() => setCreateModalVisible(true)}
-            />
-          }
-        />
+            )}
+            contentContainerStyle={[
+              styles.listContent,
+              { paddingBottom: insets.bottom + 80 },
+            ]}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={refresh}
+                tintColor={tokens.colors.primary.default}
+              />
+            }
+            ListHeaderComponent={
+              activeFilter === 'ALL' || activeFilter === 'UPCOMING' ? (
+                <UpcomingMilestoneHero
+                  event={heroEvent}
+                  onPress={(evt) => {
+                    if (!isExpired) setEditingEvent(evt);
+                  }}
+                />
+              ) : null
+            }
+            ListEmptyComponent={
+              <EmptyState
+                icon={<CalendarIcon size={48} color="#EC4899" />}
+                title="No Itinerary Events"
+                description={
+                  activeFilter === 'ALL'
+                    ? 'No events or rendezvous points have been scheduled yet. Add your first milestone.'
+                    : activeFilter === 'UPCOMING'
+                    ? 'No upcoming events scheduled. The space itinerary is currently clear.'
+                    : activeFilter === 'MILESTONES'
+                    ? 'No key milestones designated for this space.'
+                    : 'No past events recorded in the archive.'
+                }
+                actionLabel={!isExpired && activeFilter !== 'PAST' ? 'Schedule Event' : undefined}
+                onAction={() => setCreateModalVisible(true)}
+              />
+            }
+          />
+        </FadeInContent>
       )}
 
       {/* Floating Action Button (FAB) */}

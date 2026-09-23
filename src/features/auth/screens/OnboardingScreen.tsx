@@ -22,6 +22,7 @@ import {
 import Text from '../../../components/Text';
 import Input from '../../../components/Input';
 import Button from '../../../components/Button';
+import { CloseIcon } from '../../../components/icons/CommonIcons';
 
 export interface OnboardingScreenProps {
   onSuccess?: () => void;
@@ -218,7 +219,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onSuccess })
               accessibilityRole="button"
               accessibilityLabel="Dismiss error"
             >
-              <Text style={styles.errorDismissText}>✕</Text>
+              <CloseIcon size={14} color="#EF4444" />
             </Pressable>
           </View>
         )}

@@ -14,6 +14,7 @@ import type { RelationshipStatus } from '../../../types/friends';
 import Text from '../../../components/Text';
 import Input from '../../../components/Input';
 import Button from '../../../components/Button';
+import { CloseIcon, CheckIcon } from '../../../components/icons/CommonIcons';
 
 export interface AddFriendSectionProps {
   onFriendAdded?: () => void;
@@ -155,14 +156,7 @@ export const AddFriendSection: React.FC<AddFriendSectionProps> = ({ onFriendAdde
             accessibilityRole="button"
             accessibilityLabel="Dismiss feedback"
           >
-            <Text
-              style={[
-                styles.dismissText,
-                feedback.isError ? styles.bannerTextError : styles.bannerTextSuccess,
-              ]}
-            >
-              ✕
-            </Text>
+            <CloseIcon size={14} color={feedback.isError ? '#EF4444' : '#10B981'} />
           </Pressable>
         </View>
       )}
@@ -209,7 +203,8 @@ export const AddFriendSection: React.FC<AddFriendSectionProps> = ({ onFriendAdde
 
             {relationship === 'FRIENDS' && (
               <View style={[styles.statusPill, styles.pillSuccess]}>
-                <Text style={styles.pillTextSuccess}>✓ Mutual Friends</Text>
+                <CheckIcon size={12} color="#10B981" />
+                <Text style={styles.pillTextSuccess}>Mutual Friends</Text>
               </View>
             )}
 
