@@ -155,3 +155,47 @@ export interface MapBoundingBox {
   maxLat: number;
   bounds: [number, number, number, number]; // [west, south, east, north]
 }
+
+/**
+ * Step 8.4 Valhalla Routing, ETA & Geofence Types
+ */
+export type RoutingProfile = 'auto' | 'pedestrian' | 'bicycle';
+
+export interface RouteCoordinate {
+  latitude: number;
+  longitude: number;
+}
+
+export interface CalculatedRoute {
+  coordinates: [number, number][]; // [lng, lat] GeoJSON LineString coordinates
+  distanceMeters: number;
+  durationSeconds: number;
+  profile: RoutingProfile;
+  origin: RouteCoordinate;
+  destination: RouteCoordinate;
+  calculatedAt: number;
+  isStale: boolean;
+}
+
+export interface ParticipantEta {
+  userId: string;
+  distanceMeters: number;
+  durationSeconds: number;
+  formattedDistance: string;
+  formattedEta: string;
+  isArrived: boolean;
+  isStale: boolean;
+  movementState: MovementState;
+}
+
+export interface CalculateRouteOptions {
+  origin: RouteCoordinate;
+  destination: RouteCoordinate;
+  profile?: RoutingProfile;
+  signal?: AbortSignal;
+}
+
+export interface RouteCalculationResult {
+  route: CalculatedRoute | null;
+  error?: string;
+}

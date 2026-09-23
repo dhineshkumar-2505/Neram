@@ -248,4 +248,39 @@ describe('LocationSessionScreen', () => {
     fireEvent.press(getByTestId('location-back-button'));
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
+
+  it('renders user arrived banner and arrived badge when status is ARRIVED', async () => {
+    const arrivedParticipants: SessionParticipant[] = [
+      {
+        ...mockParticipants[0],
+      },
+      {
+        ...mockParticipants[1],
+        status: 'ARRIVED',
+      },
+    ];
+
+    (locationHook.useLocationSession as jest.Mock).mockReturnValue({
+      activeSession: mockActiveSession,
+      participants: arrivedParticipants,
+      isLoading: false,
+      isRefreshing: false,
+      error: null,
+      isParticipating: true,
+      refresh: mockRefresh,
+      startSession: mockStartSession,
+      joinSession: mockJoinSession,
+      leaveSession: mockLeaveSession,
+      endSession: mockEndSession,
+    });
+
+    const { getByTestId, findByText, getByText } = render(
+      <LocationSessionScreen route={mockRoute} navigation={mockNavigation} />,
+    );
+
+    expect(await findByText('Live Outing & ETA')).toBeTruthy();
+    expect(getByTestId('user-arrived-banner')).toBeTruthy();
+    expect(getByText('Arrived at Destination')).toBeTruthy();
+    expect(getByTestId('arrived-badge-usr_me')).toBeTruthy();
+  });
 });

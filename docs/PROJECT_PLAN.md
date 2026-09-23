@@ -268,7 +268,7 @@ flowchart TD
 - **Step 7.3: Itinerary, Events & Countdown Engine** (`events`, live ticker countdown, ICS calendar export, RLS) — **Done**
 - **Step 7.4: Media Vault & Attachment Engine** (`public.files`, Supabase storage signed URLs, upload/delete lifecycle, RLS) — **Done**
 
-### Part 8 — Realtime Map, Outing Coordination & Live ETA Engine (IN PROGRESS)
+### Part 8 — Realtime Map, Outing Coordination & Live ETA Engine (COMPLETED)
 - **Step 8.1: Location Session Architecture & Opt-In Permissions** — **COMPLETED**
   - Schema: Multi-participant outing sessions (`location_sessions`), explicit opt-in roster (`location_session_participants`), and latest active fix only (`current_locations` with composite primary key `(session_id, user_id)`).
   - Strict Privacy Boundary: Location decoupled from User Profile, Presence, and Group Membership (`Group Member ≠ Location Participant`).
@@ -301,6 +301,16 @@ flowchart TD
   - Map Viewport Controls (`LocationMapControls`): "Center on Me" (moves viewport without re-requesting GPS), "Fit Group" (fits camera bounds over members and destination), and connection status banner.
   - Outing Screen Integration: Vector map prominently embedded in `LocationSessionScreen` during active sessions.
   - Comprehensive Verification: 8 new unit/component test suites (59/59 suites, 446/446 tests passing, 100% pass rate), 0 ESLint warnings, 0 TypeScript errors, and clean Android Metro export bundle (1236 modules compiled in 5.4s).
-- **Step 8.4: Valhalla Routing, Live ETA & Destination Geofence Engine** — *Upcoming*
+- **Step 8.4: Valhalla Routing, Live ETAs & Automatic Geofence Termination** — **COMPLETED**
+  - Valhalla Routing Service (`routingService.ts`): Road routing using open OSM Valhalla endpoint (`https://valhalla1.openstreetmap.de/route`), overrideable via `EXPO_PUBLIC_VALHALLA_BASE_URL`, with request timeout, backoff retry, and abort signal support.
+  - Polyline Decoding (`polylineDecoder.ts`): Decodes precision-6 polyline geometry (`legs[0].shape`) into GeoJSON LineString coordinates (`[longitude, latitude]`).
+  - Movement-Aware Costing Profile: Automatically maps active movement state (`DRIVING` $\to$ `'auto'`, `WALKING` $\to$ `'pedestrian'`) with graceful fallback.
+  - Rate Limiting & Throttling: Recalculates only when destination changes, profile changes, origin moves $\ge 35\text{m}$, or route becomes stale ($> 90\text{s}$). In-flight requests cancelled cleanly with generation counter and `AbortController`.
+  - Human-Friendly ETA & Distance (`formatEta.ts`): Formats road distance ("350 m", "2.4 km") and duration ("Arriving soon", "14 min", "1 hr 12 min") and arrival clock time (e.g. "7:45 PM") with zero emojis.
+  - 50-Meter Geofence Arrival Engine (`useGeofenceArrival.ts`): Physical Haversine straight-line distance decoupled from road route geometry. Strict Accuracy Gate ($\le 65\text{m}$) prevents premature false arrival from noisy GPS fixes.
+  - Immediate Privacy Shutdown & DB Purge: On arrival, triggers `markParticipantArrived(sessionId, userId)`, shuts down device GPS hardware immediately via `locationEngine.stopTracking()`, and database trigger purges current fix from `current_locations`.
+  - Map Route Layer: Visualizes dynamic route on MapLibre via `GeoJSONSource` and line `Layer` (`#38BDF8`).
+  - Outing UI Cards: Outing Live Route & ETA card, Arrived Banner, and Arrived badge in participant roster on `LocationSessionScreen`.
+  - Comprehensive Verification: 5 new test suites (64/64 test suites, 478/478 tests passing, 100% pass rate), 0 TypeScript errors, 0 ESLint warnings, and clean Android Metro export bundle (1242 modules compiled in 8.6s).
 
 

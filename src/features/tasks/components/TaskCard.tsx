@@ -66,11 +66,10 @@ export function formatDeadline(
 
     const now = Date.now();
     const diffMs = target - now;
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const isOverdue = diffMs < 0 && !isCompleted;
 
     if (isOverdue) {
-      const overdueHours = Math.abs(diffHours);
+      const overdueHours = Math.max(1, Math.round(Math.abs(diffMs) / (1000 * 60 * 60)));
       if (overdueHours < 24) {
         return { text: `Overdue by ${overdueHours}h`, isOverdue: true };
       }
@@ -78,9 +77,11 @@ export function formatDeadline(
       return { text: `Overdue by ${overdueDays}d`, isOverdue: true };
     }
 
-    if (diffHours < 0) return { text: 'Past due', isOverdue: false };
-    if (diffHours < 24) return { text: `Due in ${Math.max(1, diffHours)}h`, isOverdue: false };
-    const diffDays = Math.floor(diffHours / 24);
+    if (diffMs < 0) return { text: 'Past due', isOverdue: false };
+
+    const futureHours = Math.round(diffMs / (1000 * 60 * 60));
+    if (futureHours < 24) return { text: `Due in ${Math.max(1, futureHours)}h`, isOverdue: false };
+    const diffDays = Math.floor(futureHours / 24);
     if (diffDays === 1) return { text: 'Due tomorrow', isOverdue: false };
     return { text: `Due in ${diffDays}d`, isOverdue: false };
   } catch {

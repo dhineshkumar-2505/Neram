@@ -39,6 +39,11 @@ export default [
         requestAnimationFrame: 'readonly',
         cancelAnimationFrame: 'readonly',
         require: 'readonly',
+        fetch: 'readonly',
+        AbortController: 'readonly',
+        AbortSignal: 'readonly',
+        Response: 'readonly',
+        global: 'readonly',
       },
     },
     plugins: {

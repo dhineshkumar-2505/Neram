@@ -38,12 +38,22 @@ jest.mock('@maplibre/maplibre-react-native', () => {
     return React.createElement(View, { testID: 'maplibre-view-annotation', ...props }, children);
   };
 
+  const GeoJSONSource = ({ children, testID, ...props }: any) => {
+    return React.createElement(View, { testID: testID || 'maplibre-geojson-source', ...props }, children);
+  };
+
+  const Layer = ({ testID, id, ...props }: any) => {
+    return React.createElement(View, { testID: testID || `maplibre-layer-${id || 'line'}`, ...props });
+  };
+
   return {
     Map,
     Camera,
     Marker,
     Callout,
     ViewAnnotation,
+    GeoJSONSource,
+    Layer,
     UserLocation: () => null,
   };
 });

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -22,6 +22,9 @@ import { useLocationSession } from '../hooks/useLocationSession';
 import { useLocationTracking } from '../hooks/useLocationTracking';
 import { useRealtimeLocations } from '../hooks/useRealtimeLocations';
 import { useEventDestination } from '../hooks/useEventDestination';
+import { useValhallaRoute } from '../hooks/useValhallaRoute';
+import { useGeofenceArrival } from '../hooks/useGeofenceArrival';
+import { formatArrivalTime } from '../utils/formatEta';
 import { LocationMap } from '../components/LocationMap';
 import { LocationOptInModal } from '../components/LocationOptInModal';
 import { CreateSessionModal } from '../components/CreateSessionModal';
@@ -29,6 +32,7 @@ import {
   CompassIcon,
   RendezvousPinIcon,
   UserLocationIcon,
+  CheckCircleIcon,
   LockIcon,
   LeaveIcon,
   WalkingIcon,
@@ -117,6 +121,71 @@ export const LocationSessionScreen: React.FC<RootStackScreenProps<'LocationSessi
     : typeof remainingTime === 'string'
     ? remainingTime
     : remainingTime?.formattedText || '--';
+
+  const currentParticipant = participants.find((p) => p.userId === currentUserId);
+  const isParticipantArrived = currentParticipant?.status === 'ARRIVED';
+
+  // Determine current user coordinate fix for routing and geofence
+  const currentFixCoord = useMemo(() => {
+    if (trackingState.currentFix) {
+      return {
+        latitude: trackingState.currentFix.latitude,
+        longitude: trackingState.currentFix.longitude,
+        accuracy: trackingState.currentFix.accuracy,
+      };
+    }
+    const selfRecord = realtimeLocations.find((l) => l.userId === currentUserId);
+    if (selfRecord) {
+      return {
+        latitude: selfRecord.latitude,
+        longitude: selfRecord.longitude,
+        accuracy: selfRecord.accuracy ?? undefined,
+      };
+    }
+    return null;
+  }, [trackingState.currentFix, realtimeLocations, currentUserId]);
+
+  const destinationCoord = useMemo(() => {
+    if (!eventDestination) return null;
+    return {
+      latitude: eventDestination.latitude,
+      longitude: eventDestination.longitude,
+      title: eventDestination.locationName || eventDestination.title,
+    };
+  }, [eventDestination]);
+
+  // Step 8.4 Geofence Arrival hook
+  const geofenceState = useGeofenceArrival({
+    currentFix: currentFixCoord,
+    destination: eventDestination,
+    sessionId: activeSession?.id,
+    userId: currentUserId,
+    isParticipating,
+    isExpired,
+    onArrived: () => {
+      refresh();
+    },
+  });
+
+  const hasArrived = isParticipantArrived || geofenceState.hasArrived;
+
+  // Step 8.4 Valhalla Routing & ETA hook
+  const {
+    route: calculatedRoute,
+    isLoading: isRoutingLoading,
+    formattedDistance,
+    formattedEta,
+    durationSeconds,
+  } = useValhallaRoute({
+    origin: currentFixCoord ? { latitude: currentFixCoord.latitude, longitude: currentFixCoord.longitude } : null,
+    destination: eventDestination,
+    movementState: trackingState.movementState,
+    sessionId: activeSession?.id,
+    isExpired: isExpired || hasArrived,
+  });
+
+  const estimatedArrivalTime = durationSeconds !== null ? formatArrivalTime(durationSeconds) : null;
+  const activeRoutingProfile = calculatedRoute?.profile || (trackingState.movementState === 'WALKING' ? 'pedestrian' : 'auto');
 
   const isCreatorOrAdmin = Boolean(
     activeSession &&
@@ -276,11 +345,92 @@ export const LocationSessionScreen: React.FC<RootStackScreenProps<'LocationSessi
                 )}
               </View>
 
+              {/* User Arrived Banner */}
+              {hasArrived && (
+                <View style={styles.arrivalBanner} testID="user-arrived-banner">
+                  <CheckCircleIcon size={20} color="#10B981" />
+                  <View style={styles.arrivalBannerContent}>
+                    <Text variant="callout" weight="bold" style={styles.arrivalTitleText}>
+                      Arrived at Destination
+                    </Text>
+                    <Text variant="caption" style={styles.arrivalSubtitleText}>
+                      You have arrived at {destinationCoord?.title || 'the rendezvous destination'}. Location tracking has concluded for this session.
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Step 8.4 Outing Live Route & ETA Card */}
+              {!hasArrived && isParticipating && destinationCoord && (
+                <View style={styles.etaCard} testID="outing-eta-card">
+                  <View style={styles.etaHeaderRow}>
+                    <View style={styles.etaHeaderTitleGroup}>
+                      <Text variant="caption" weight="bold" style={styles.etaLabelText}>
+                        LIVE ROUTE & ETA
+                      </Text>
+                      <Text variant="callout" weight="semibold" style={styles.etaVenueText} numberOfLines={1}>
+                        {destinationCoord.title || 'Rendezvous Destination'}
+                      </Text>
+                    </View>
+                    <View style={styles.etaModeBadge}>
+                      {activeRoutingProfile === 'pedestrian' ? (
+                        <WalkingIcon size={14} color="#10B981" />
+                      ) : (
+                        <CarIcon size={14} color="#38BDF8" />
+                      )}
+                      <Text variant="caption" weight="bold" style={styles.etaModeBadgeText}>
+                        {activeRoutingProfile === 'pedestrian' ? 'WALKING' : 'DRIVING'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.etaStatsRow}>
+                    <View style={styles.etaStatItem}>
+                      <Text variant="caption" style={styles.statLabel}>ESTIMATED TIME</Text>
+                      <Text variant="title3" weight="bold" style={styles.statValueEta}>
+                        {isRoutingLoading && !formattedEta ? 'Calculating...' : formattedEta || '--'}
+                      </Text>
+                    </View>
+
+                    <View style={styles.etaStatDivider} />
+
+                    <View style={styles.etaStatItem}>
+                      <Text variant="caption" style={styles.statLabel}>ROAD DISTANCE</Text>
+                      <Text variant="title3" weight="bold" style={styles.statValueDistance}>
+                        {isRoutingLoading && !formattedDistance ? 'Calculating...' : formattedDistance || '--'}
+                      </Text>
+                    </View>
+
+                    {estimatedArrivalTime && (
+                      <>
+                        <View style={styles.etaStatDivider} />
+                        <View style={styles.etaStatItem}>
+                          <Text variant="caption" style={styles.statLabel}>ARRIVAL AT</Text>
+                          <Text variant="title3" weight="bold" style={styles.statValueClock}>
+                            {estimatedArrivalTime}
+                          </Text>
+                        </View>
+                      </>
+                    )}
+                  </View>
+
+                  {geofenceState.distanceToDestinationMeters !== null && geofenceState.distanceToDestinationMeters <= 200 && (
+                    <View style={styles.proximityCallout}>
+                      <CompassIcon size={14} color="#F59E0B" />
+                      <Text variant="caption" weight="medium" style={styles.proximityCalloutText}>
+                        Within {Math.round(geofenceState.distanceToDestinationMeters)}m — Arrival geofence active (50m)
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              )}
+
               {/* Step 8.3 Live Vector Map */}
               <View style={styles.mapCard} testID="session-map-card">
                 <LocationMap
                   locations={realtimeLocations}
                   destination={eventDestination}
+                  route={hasArrived ? null : calculatedRoute}
                   currentUserId={currentUserId}
                   isConnected={isRealtimeConnected}
                 />
@@ -399,6 +549,7 @@ export const LocationSessionScreen: React.FC<RootStackScreenProps<'LocationSessi
                   <View style={styles.participantsList}>
                     {participants.map((p) => {
                       const isSelf = currentUserId && p.userId === currentUserId;
+                      const isArrived = p.status === 'ARRIVED' || (isSelf && hasArrived);
                       return (
                         <View key={p.id} style={styles.participantRow}>
                           <View style={styles.avatarPlaceholder}>
@@ -417,12 +568,21 @@ export const LocationSessionScreen: React.FC<RootStackScreenProps<'LocationSessi
                             </Text>
                           </View>
 
-                          <View style={styles.liveIndicatorBadge}>
-                            <View style={styles.liveDot} />
-                            <Text variant="caption" weight="semibold" style={styles.liveIndicatorText}>
-                              Sharing Live
-                            </Text>
-                          </View>
+                          {isArrived ? (
+                            <View style={styles.arrivedIndicatorBadge} testID={`arrived-badge-${p.userId}`}>
+                              <CheckCircleIcon size={14} color="#10B981" />
+                              <Text variant="caption" weight="bold" style={styles.arrivedIndicatorText}>
+                                Arrived
+                              </Text>
+                            </View>
+                          ) : (
+                            <View style={styles.liveIndicatorBadge}>
+                              <View style={styles.liveDot} />
+                              <Text variant="caption" weight="semibold" style={styles.liveIndicatorText}>
+                                Sharing Live
+                              </Text>
+                            </View>
+                          )}
                         </View>
                       );
                     })}
@@ -807,6 +967,132 @@ const styles = StyleSheet.create({
   liveIndicatorText: {
     color: '#10B981',
     fontSize: 10,
+  },
+  arrivedIndicatorBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: tokens.radius.full,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.35)',
+  },
+  arrivedIndicatorText: {
+    color: '#10B981',
+    fontSize: 10,
+  },
+  arrivalBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.35)',
+    borderRadius: tokens.radius.md,
+    padding: tokens.spacing.md,
+    marginBottom: 12,
+  },
+  arrivalBannerContent: {
+    flex: 1,
+  },
+  arrivalTitleText: {
+    color: '#10B981',
+  },
+  arrivalSubtitleText: {
+    color: tokens.colors.text.secondary,
+    marginTop: 2,
+  },
+  etaCard: {
+    backgroundColor: '#13151A',
+    borderRadius: tokens.radius.md,
+    borderWidth: 1,
+    borderColor: '#1E293B',
+    padding: 14,
+    marginBottom: 12,
+  },
+  etaHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  etaHeaderTitleGroup: {
+    flex: 1,
+    marginRight: 10,
+  },
+  etaLabelText: {
+    color: '#38BDF8',
+    fontSize: 10,
+    letterSpacing: 0.8,
+  },
+  etaVenueText: {
+    color: tokens.colors.text.primary,
+    marginTop: 2,
+  },
+  etaModeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#1E293B',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: tokens.radius.full,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  etaModeBadgeText: {
+    fontSize: 10,
+    color: tokens.colors.text.secondary,
+  },
+  etaStatsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0F172A',
+    borderRadius: tokens.radius.sm,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+  etaStatItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statLabel: {
+    color: tokens.colors.text.tertiary,
+    fontSize: 9,
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  statValueEta: {
+    color: '#38BDF8',
+  },
+  statValueDistance: {
+    color: tokens.colors.text.primary,
+  },
+  statValueClock: {
+    color: '#10B981',
+  },
+  etaStatDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: '#1E293B',
+  },
+  proximityCallout: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.25)',
+    borderRadius: tokens.radius.sm,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    marginTop: 10,
+  },
+  proximityCalloutText: {
+    color: '#F59E0B',
+    fontSize: 11,
   },
   adminControlsContainer: {
     marginTop: 8,

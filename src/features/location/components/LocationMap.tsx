@@ -5,9 +5,17 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Camera, Map, type CameraRef } from '@maplibre/maplibre-react-native';
+import {
+  Camera,
+  GeoJSONSource,
+  Layer,
+  Map,
+  type CameraRef,
+} from '@maplibre/maplibre-react-native';
 import { MAP_CONFIG } from '../config/mapConfig';
+import { ROUTING_CONFIG } from '../config/routingConfig';
 import type {
+  CalculatedRoute,
   EventDestination,
   InterpolatedCoordinate,
   MemberLocationRecord,
@@ -22,6 +30,7 @@ import { MemberLocationMarker } from './MemberLocationMarker';
 export interface LocationMapProps {
   locations: MemberLocationRecord[];
   destination: EventDestination | null;
+  route?: CalculatedRoute | null;
   currentUserId?: string;
   isConnected: boolean;
   onSelectMember?: (member: MemberLocationRecord) => void;
@@ -32,6 +41,7 @@ export interface LocationMapProps {
 export const LocationMap: React.FC<LocationMapProps> = ({
   locations,
   destination,
+  route,
   currentUserId,
   isConnected,
   onSelectMember,
@@ -138,6 +148,35 @@ export const LocationMap: React.FC<LocationMapProps> = ({
               : [0, 0],
           }}
         />
+
+        {/* Valhalla Road Route Polyline Layer */}
+        {route && route.coordinates.length > 1 && (
+          <GeoJSONSource
+            id="valhalla-route-source"
+            data={{
+              type: 'Feature',
+              properties: {},
+              geometry: {
+                type: 'LineString',
+                coordinates: route.coordinates,
+              },
+            }}
+          >
+            <Layer
+              id="valhalla-route-line"
+              type="line"
+              paint={{
+                'line-color': ROUTING_CONFIG.STYLE.LINE_COLOR,
+                'line-width': ROUTING_CONFIG.STYLE.LINE_WIDTH,
+                'line-opacity': ROUTING_CONFIG.STYLE.LINE_OPACITY,
+              }}
+              layout={{
+                'line-cap': 'round',
+                'line-join': 'round',
+              }}
+            />
+          </GeoJSONSource>
+        )}
 
         {/* Member Markers */}
         {locations.map((member) => (

@@ -340,6 +340,46 @@ export const locationSessionService = {
   },
 
   /**
+   * Marks a participant as ARRIVED at the destination geofence.
+   * Updates participant status to 'ARRIVED' and deletes their ephemeral coordinates.
+   */
+  async markParticipantArrived(
+    sessionId: string,
+    currentUserId: string,
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      if (!currentUserId || !sessionId) {
+        return { success: false, error: 'Session ID and User ID are required.' };
+      }
+
+      const { error } = await supabase
+        .from('location_session_participants')
+        .update({
+          status: 'ARRIVED',
+          left_at: new Date().toISOString(),
+        })
+        .eq('session_id', sessionId)
+        .eq('user_id', currentUserId);
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      // Explicitly delete fix as backup in case trigger is deferred
+      await supabase
+        .from('current_locations')
+        .delete()
+        .eq('session_id', sessionId)
+        .eq('user_id', currentUserId);
+
+      return { success: true };
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to mark participant arrived.';
+      return { success: false, error: message };
+    }
+  },
+
+  /**
    * Ends an active location session.
    * Marks session 'ENDED' and automatically purges all active fixes.
    */
