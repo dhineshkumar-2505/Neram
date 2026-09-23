@@ -30,20 +30,23 @@ jobs:
             exit 1
           fi
 
-          # 2. Sanitize URL: strip variable prefix, surrounding quotes, whitespace, and carriage returns
-          URL=$(echo "$SUPABASE_URL" | sed -E 's/^[A-Za-z0-9_]*=//' | tr -d '\r\n"' | tr -d "'" | xargs)
+          # 2. Sanitize URL: strip variable prefixes, quotes, whitespace, and newlines
+          URL=$(echo "$SUPABASE_URL" | tr -d '\r\n[:space:]"' | tr -d "'")
+          URL="${URL#*EXPO_PUBLIC_SUPABASE_URL=}"
+          URL="${URL#*SUPABASE_URL=}"
           if [[ ! "$URL" =~ ^https?:// ]]; then
             URL="https://${URL}"
           fi
           URL="${URL%/}"
 
-          # 3. Sanitize Key: strip variable prefix, surrounding quotes, whitespace, and carriage returns
-          KEY=$(echo "$SUPABASE_ANON_KEY" | sed -E 's/^[A-Za-z0-9_]*=//' | tr -d '\r\n"' | tr -d "'" | xargs)
+          # 3. Sanitize Key: strip variable prefixes, quotes, whitespace, and newlines
+          KEY=$(echo "$SUPABASE_ANON_KEY" | tr -d '\r\n[:space:]"' | tr -d "'")
+          KEY="${KEY#*EXPO_PUBLIC_SUPABASE_ANON_KEY=}"
+          KEY="${KEY#*SUPABASE_ANON_KEY=}"
 
           # 4. Perform lightweight GET request against profiles table (limit=1)
-          # Use -w to extract HTTP status code, capturing curl exit code cleanly
           set +e
-          HTTP_STATUS=$(curl -s -S -o /dev/null -w "%{http_code}" \
+          HTTP_STATUS=$(curl -s -S -o response.txt -w "%{http_code}" \
             -X GET \
             -H "apikey: ${KEY}" \
             -H "Authorization: Bearer ${KEY}" \
@@ -67,5 +70,12 @@ jobs:
           else
             echo "Supabase request failed"
             echo "HTTP status: $HTTP_STATUS"
+            echo "Key length received: ${#KEY} chars (expected 208 chars for this project's anon key)"
+            if [ -s response.txt ]; then
+              echo "Gateway response: $(cat response.txt)"
+            fi
+            if [ "$HTTP_STATUS" -eq 401 ]; then
+              echo "Hint: HTTP 401 indicates that SUPABASE_ANON_KEY in GitHub Secrets does not match the valid anon key."
+            fi
             exit 1
           fi
