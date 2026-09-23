@@ -19,6 +19,12 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../src/hooks/useAuth');
 jest.mock('../../src/features/groups/services/groupService');
+jest.mock('../../src/features/groups/services/lifecycleService', () => ({
+  lifecycleService: {
+    subscribeToGroupLifecycle: jest.fn().mockReturnValue(() => {}),
+    triggerLifecycleSync: jest.fn().mockResolvedValue({ metrics: null }),
+  },
+}));
 
 describe('GroupDetailScreen Component', () => {
   const mockRoute = {

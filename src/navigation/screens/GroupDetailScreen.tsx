@@ -52,6 +52,7 @@ export const GroupDetailScreen: React.FC<RootStackScreenProps<'GroupDetail'>> = 
     group?.starts_at,
     group?.expires_at,
     group?.lifecycle_state,
+    group?.id,
   );
 
   if (loading) {

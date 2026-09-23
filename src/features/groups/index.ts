@@ -1,5 +1,6 @@
 export * from './types';
 export * from './services/groupService';
+export * from './services/lifecycleService';
 export * from './hooks/useGroupLifecycle';
 export * from './components/CircularDurationDial';
 export * from './components/PurposeSelector';

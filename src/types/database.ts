@@ -921,6 +921,10 @@ export type Database = {
         Args: { p_group_id: string; p_user_id: string }
         Returns: boolean
       }
+      process_group_lifecycle_transitions: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       respond_to_friend_request: {
         Args: { p_accept: boolean; p_request_id: string }
         Returns: undefined

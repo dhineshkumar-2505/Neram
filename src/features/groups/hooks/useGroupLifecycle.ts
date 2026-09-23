@@ -4,6 +4,7 @@ import {
   GroupLifecycleState,
   calculateGroupRemainingTime,
 } from '../types';
+import { lifecycleService } from '../services/lifecycleService';
 
 export interface UseGroupLifecycleResult {
   remainingTime: GroupRemainingTime;
@@ -16,12 +17,17 @@ export interface UseGroupLifecycleResult {
  * Real-time temporal lifecycle hook for temporary groups.
  * Ticks every 1000ms to calculate exact countdown, progress fraction,
  * and state transitions (ACTIVE -> EXPIRING -> EXPIRED).
+ * Also listens to Supabase Realtime WebSocket push events for instantaneous server updates.
  */
 export function useGroupLifecycle(
   startsAt: string | Date | undefined,
   expiresAt: string | Date | undefined,
   databaseState: GroupLifecycleState = 'ACTIVE',
+  groupId?: string,
 ): UseGroupLifecycleResult {
+  const [currentDatabaseState, setCurrentDatabaseState] =
+    useState<GroupLifecycleState>(databaseState);
+
   const [remainingTime, setRemainingTime] = useState<GroupRemainingTime>(() => {
     if (!startsAt || !expiresAt) {
       return {
@@ -39,6 +45,30 @@ export function useGroupLifecycle(
     return calculateGroupRemainingTime(startsAt, expiresAt);
   });
 
+  // Sync initial databaseState prop
+  useEffect(() => {
+    setCurrentDatabaseState(databaseState);
+  }, [databaseState]);
+
+  // Realtime WebSocket channel subscription
+  useEffect(() => {
+    if (!groupId) return;
+
+    const unsubscribe = lifecycleService.subscribeToGroupLifecycle(
+      groupId,
+      (payload) => {
+        if (payload.lifecycleState) {
+          setCurrentDatabaseState(payload.lifecycleState);
+        }
+      },
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [groupId]);
+
+  // 1-second interval ticker
   useEffect(() => {
     if (!startsAt || !expiresAt) return;
 
@@ -57,6 +87,8 @@ export function useGroupLifecycle(
 
       if (updated.isExpired) {
         clearInterval(intervalId);
+        // Fail-safe: trigger server-side transition sync
+        lifecycleService.triggerLifecycleSync().catch(() => {});
       }
     }, 1000);
 
@@ -66,9 +98,9 @@ export function useGroupLifecycle(
   }, [startsAt, expiresAt]);
 
   // Derive active lifecycle state
-  let resolvedState = databaseState;
-  if (databaseState === 'ARCHIVED' || databaseState === 'PURGED') {
-    resolvedState = databaseState;
+  let resolvedState = currentDatabaseState;
+  if (currentDatabaseState === 'ARCHIVED' || currentDatabaseState === 'PURGED') {
+    resolvedState = currentDatabaseState;
   } else if (remainingTime.isExpired) {
     resolvedState = 'EXPIRED';
   } else if (remainingTime.isExpiring) {
