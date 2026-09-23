@@ -118,3 +118,153 @@ export function formatDurationBadge(duration: { months: number; days: number; ho
   if (parts.length === 0) return '1h';
   return parts.join(' ');
 }
+
+/**
+ * 9 Database-backed Group Purpose Archetypes
+ * Corresponds to public.group_purpose enum
+ */
+export type GroupPurpose =
+  | 'OUTING'
+  | 'PROJECT'
+  | 'HACKATHON'
+  | 'BIRTHDAY'
+  | 'TRIP'
+  | 'STUDY'
+  | 'SPORTS'
+  | 'EVENT'
+  | 'CUSTOM';
+
+export type GroupLifecycleState =
+  | 'CREATED'
+  | 'ACTIVE'
+  | 'EXPIRING'
+  | 'EXPIRED'
+  | 'ARCHIVED'
+  | 'PURGED';
+
+export type GroupRole = 'OWNER' | 'ADMIN' | 'MEMBER';
+
+export interface GroupRecord {
+  id: string;
+  owner_id: string;
+  name: string;
+  description: string | null;
+  image_path: string | null;
+  purpose: GroupPurpose;
+  starts_at: string;
+  expires_at: string;
+  lifecycle_state: GroupLifecycleState;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GroupMemberRecord {
+  group_id: string;
+  user_id: string;
+  role: GroupRole;
+  joined_at: string;
+  left_at: string | null;
+}
+
+export interface CreateGroupInput {
+  name: string;
+  description?: string;
+  purpose: GroupPurpose;
+  duration: { months: number; days: number; hours: number };
+  startsAt?: Date;
+  initialMemberIds?: string[];
+}
+
+export interface GroupPurposeMetadata {
+  id: GroupPurpose;
+  label: string;
+  tagline: string;
+  badge: string;
+  accentColor: string;
+  primaryTool: string;
+  defaultDuration: { months: number; days: number; hours: number };
+}
+
+export const PURPOSE_METADATA: GroupPurposeMetadata[] = [
+  {
+    id: 'OUTING',
+    label: 'Outing',
+    tagline: 'Meetups, road trips, dining & spontaneous gatherings',
+    badge: 'Live Map & ETA',
+    accentColor: '#38BDF8',
+    primaryTool: 'Live Route Tracking',
+    defaultDuration: { months: 0, days: 0, hours: 4 },
+  },
+  {
+    id: 'PROJECT',
+    label: 'Project',
+    tagline: 'Focused teamwork, deliverables & milestones',
+    badge: 'Task Board',
+    accentColor: '#818CF8',
+    primaryTool: 'Milestone Progress',
+    defaultDuration: { months: 1, days: 0, hours: 0 },
+  },
+  {
+    id: 'HACKATHON',
+    label: 'Hackathon',
+    tagline: 'Intense build sprints with deadline countdowns',
+    badge: 'Countdown & Tasks',
+    accentColor: '#F59E0B',
+    primaryTool: 'Sprint Checklist',
+    defaultDuration: { months: 0, days: 1, hours: 0 },
+  },
+  {
+    id: 'BIRTHDAY',
+    label: 'Birthday',
+    tagline: 'Celebrations, surprise parties & event itineraries',
+    badge: 'Party Timeline',
+    accentColor: '#EC4899',
+    primaryTool: 'Event Moments',
+    defaultDuration: { months: 0, days: 2, hours: 0 },
+  },
+  {
+    id: 'TRIP',
+    label: 'Trip',
+    tagline: 'Multi-day travel, excursions & group itineraries',
+    badge: 'Daily Schedule',
+    accentColor: '#10B981',
+    primaryTool: 'Travel Itinerary',
+    defaultDuration: { months: 0, days: 7, hours: 0 },
+  },
+  {
+    id: 'STUDY',
+    label: 'Study',
+    tagline: 'Exam cramming, paper reviews & study circles',
+    badge: 'Focus Milestones',
+    accentColor: '#6366F1',
+    primaryTool: 'Resource Sharing',
+    defaultDuration: { months: 0, days: 3, hours: 0 },
+  },
+  {
+    id: 'SPORTS',
+    label: 'Sports',
+    tagline: 'Matches, team rosters & pitch coordination',
+    badge: 'Roster & Venue',
+    accentColor: '#14B8A6',
+    primaryTool: 'Match Timing',
+    defaultDuration: { months: 0, days: 0, hours: 6 },
+  },
+  {
+    id: 'EVENT',
+    label: 'Event',
+    tagline: 'Concerts, festivals, shows & one-off gatherings',
+    badge: 'Venue & Schedule',
+    accentColor: '#A855F7',
+    primaryTool: 'Event Moments',
+    defaultDuration: { months: 0, days: 1, hours: 0 },
+  },
+  {
+    id: 'CUSTOM',
+    label: 'Custom',
+    tagline: 'Tailored temporary space for your unique plan',
+    badge: 'Flexible Space',
+    accentColor: '#94A3B8',
+    primaryTool: 'Command Modules',
+    defaultDuration: { months: 0, days: 0, hours: 12 },
+  },
+];
