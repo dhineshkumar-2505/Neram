@@ -24,18 +24,40 @@ jobs:
         run: |
           echo "Neram Supabase activity check started"
 
+          # 1. Validate secrets exist
           if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
             echo "Error: SUPABASE_URL or SUPABASE_ANON_KEY is not configured in repository secrets."
             exit 1
           fi
 
-          URL="${SUPABASE_URL%/}"
+          # 2. Sanitize URL: strip variable prefix, surrounding quotes, whitespace, and carriage returns
+          URL=$(echo "$SUPABASE_URL" | sed -E 's/^[A-Za-z0-9_]*=//' | tr -d '\r\n"' | tr -d "'" | xargs)
+          if [[ ! "$URL" =~ ^https?:// ]]; then
+            URL="https://${URL}"
+          fi
+          URL="${URL%/}"
 
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+          # 3. Sanitize Key: strip variable prefix, surrounding quotes, whitespace, and carriage returns
+          KEY=$(echo "$SUPABASE_ANON_KEY" | sed -E 's/^[A-Za-z0-9_]*=//' | tr -d '\r\n"' | tr -d "'" | xargs)
+
+          # 4. Perform lightweight GET request against profiles table (limit=1)
+          # Use -w to extract HTTP status code, capturing curl exit code cleanly
+          set +e
+          HTTP_STATUS=$(curl -s -S -o /dev/null -w "%{http_code}" \
             -X GET \
-            -H "apikey: ${SUPABASE_ANON_KEY}" \
-            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
-            "${URL}/rest/v1/profiles?select=user_id&limit=1")
+            -H "apikey: ${KEY}" \
+            -H "Authorization: Bearer ${KEY}" \
+            "${URL}/rest/v1/profiles?select=user_id&limit=1" 2>curl_err.log)
+          CURL_EXIT=$?
+          set -e
+
+          if [ $CURL_EXIT -ne 0 ]; then
+            echo "Supabase request failed: network or URL format error (curl code $CURL_EXIT)"
+            if [ -s curl_err.log ]; then
+              sed -E 's/Bearer [^ ]+/Bearer ***/g' curl_err.log
+            fi
+            exit 1
+          fi
 
           if [ "$HTTP_STATUS" -eq 200 ]; then
             echo "Supabase request successful"
