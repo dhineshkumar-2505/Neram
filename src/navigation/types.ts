@@ -37,6 +37,8 @@ export type RootStackParamList = {
   Events: { groupId: string; groupName?: string };
   MediaVault: { groupId: string; groupName?: string };
   LocationSession: { groupId: string; groupName?: string };
+  QRScanner: undefined;
+  JoinGroup: { token: string };
 };
 
 export type RootStackScreenProps<T extends keyof RootStackParamList> =

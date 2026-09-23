@@ -17,6 +17,7 @@ import { useGroupLifecycle } from '../../groups/hooks/useGroupLifecycle';
 import { groupService } from '../../groups/services/groupService';
 import type { GroupDetailedRecord } from '../../groups/types';
 import { chatService } from '../services/chatService';
+import { audioRecordingService } from '../services/audioRecordingService';
 import type { ChatMessage, ReplyPreview } from '../types';
 import MessageBubble from '../components/MessageBubble';
 import ChatInputBar from '../components/ChatInputBar';
@@ -221,6 +222,62 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
     }
   };
 
+  const handleSendVoiceNote = async (uri: string, durationMillis: number) => {
+    if (isExpired || isSending) return;
+
+    const tempId = `temp_voice_${Date.now()}`;
+    const formattedDuration = audioRecordingService.formatDuration(durationMillis);
+    const optimisticMessage: ChatMessage = {
+      id: tempId,
+      tempId,
+      groupId,
+      senderId: currentUserId,
+      body: `[Voice Note] ${formattedDuration}`,
+      replyToId: replyTo?.id || null,
+      replyTo,
+      createdAt: new Date().toISOString(),
+      editedAt: null,
+      deletedAt: null,
+      sender: user
+        ? {
+            userId: user.id,
+            username: profile?.username || 'member',
+            displayName: profile?.display_name || 'Member',
+            avatarUrl: profile?.avatar_path || null,
+          }
+        : undefined,
+      status: 'PENDING',
+    };
+
+    setMessages((prev) => [optimisticMessage, ...prev]);
+    setIsSending(true);
+    setErrorBanner(null);
+
+    const currentReplyTo = replyTo;
+    setReplyTo(null);
+
+    const res = await audioRecordingService.sendVoiceMessage(
+      groupId,
+      currentUserId,
+      uri,
+      durationMillis,
+      currentReplyTo?.id,
+    );
+
+    setIsSending(false);
+
+    if (res.success && res.message) {
+      setMessages((prev) =>
+        prev.map((m) => (m.id === tempId ? res.message! : m)),
+      );
+    } else {
+      setErrorBanner(res.error || 'Failed to send voice note.');
+      setMessages((prev) =>
+        prev.map((m) => (m.id === tempId ? { ...m, status: 'FAILED' } : m)),
+      );
+    }
+  };
+
   const handleInitiateReply = (message: ChatMessage) => {
     setReplyTo({
       id: message.id,
@@ -341,6 +398,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
             }
           }}
           onSend={handleSend}
+          onSendVoiceNote={handleSendVoiceNote}
           isExpired={isExpired}
           isSending={isSending}
           replyTo={replyTo}

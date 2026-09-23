@@ -142,3 +142,43 @@ export const TrashIcon: React.FC<IconProps> = ({ color = '#EF4444', size = 16 })
     />
   </Svg>
 );
+
+/**
+ * Microphone icon for voice note recording.
+ */
+export const MicIcon: React.FC<IconProps> = ({ color = '#00FF9D', size = 20 }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect x="9" y="2" width="6" height="12" rx="3" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    <Path d="M5 10V11C5 14.866 8.134 18 12 18C15.866 18 19 14.866 19 11V10" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    <Path d="M12 18V22M8 22H16" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>
+);
+
+/**
+ * Audio playback play icon.
+ */
+export const PlayIcon: React.FC<IconProps> = ({ color = '#F8FAFC', size = 18 }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M6 4L19 12L6 20V4Z" fill={color} stroke={color} strokeWidth={2} strokeLinejoin="round" />
+  </Svg>
+);
+
+/**
+ * Audio playback pause icon.
+ */
+export const PauseIcon: React.FC<IconProps> = ({ color = '#F8FAFC', size = 18 }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect x="6" y="4" width="4" height="16" rx="1" fill={color} />
+    <Rect x="14" y="4" width="4" height="16" rx="1" fill={color} />
+  </Svg>
+);
+
+/**
+ * Audio playback stop icon.
+ */
+export const StopIcon: React.FC<IconProps> = ({ color = '#EF4444', size = 18 }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect x="5" y="5" width="14" height="14" rx="2" fill={color} stroke={color} strokeWidth={2} />
+  </Svg>
+);
+

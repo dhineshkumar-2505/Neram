@@ -131,6 +131,14 @@ export const typography = {
     semibold: '600' as const,
     bold: '700' as const,
   },
+
+  // Font Families
+  fontFamily: {
+    regular: 'System' as const,
+    medium: 'System' as const,
+    semiBold: 'System' as const,
+    bold: 'System' as const,
+  },
 } as const;
 
 export const layout = {

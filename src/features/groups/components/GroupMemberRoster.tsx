@@ -9,6 +9,7 @@ export interface GroupMemberRosterProps {
   ownerId: string;
   currentUserRole: GroupRole | null;
   onInvitePress?: () => void;
+  onQRInvitePress?: () => void;
   isExpired?: boolean;
 }
 
@@ -22,6 +23,7 @@ export const GroupMemberRoster: React.FC<GroupMemberRosterProps> = ({
   ownerId,
   currentUserRole,
   onInvitePress,
+  onQRInvitePress,
   isExpired = false,
 }) => {
   const canInvite =
@@ -44,15 +46,29 @@ export const GroupMemberRoster: React.FC<GroupMemberRosterProps> = ({
           MEMBERS ({members.length})
         </Text>
 
-        {canInvite && onInvitePress && (
-          <Pressable
-            onPress={onInvitePress}
-            accessibilityRole="button"
-            accessibilityLabel="Invite more mutual friends"
-            style={styles.inviteButton}
-          >
-            <Text style={styles.inviteButtonText}>+ Add Friends</Text>
-          </Pressable>
+        {canInvite && (
+          <View style={styles.headerActions}>
+            {onQRInvitePress && (
+              <Pressable
+                onPress={onQRInvitePress}
+                accessibilityRole="button"
+                accessibilityLabel="Generate QR invite code"
+                style={styles.qrButton}
+              >
+                <Text style={styles.qrButtonText}>QR Invite</Text>
+              </Pressable>
+            )}
+            {onInvitePress && (
+              <Pressable
+                onPress={onInvitePress}
+                accessibilityRole="button"
+                accessibilityLabel="Invite more mutual friends"
+                style={styles.inviteButton}
+              >
+                <Text style={styles.inviteButtonText}>+ Add Friends</Text>
+              </Pressable>
+            )}
+          </View>
         )}
       </View>
 
@@ -136,6 +152,24 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: '#64748B',
     letterSpacing: 0.8,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  qrButton: {
+    backgroundColor: 'rgba(0, 255, 157, 0.12)',
+    paddingHorizontal: tokens.spacing.sm,
+    paddingVertical: 4,
+    borderRadius: tokens.radius.full,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 255, 157, 0.3)',
+  },
+  qrButtonText: {
+    color: '#00FF9D',
+    fontSize: 11,
+    fontWeight: '600',
   },
   inviteButton: {
     backgroundColor: 'rgba(129, 140, 248, 0.15)',

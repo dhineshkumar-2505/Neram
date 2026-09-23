@@ -4,6 +4,7 @@ import { tokens } from '../../../design';
 import Text from '../../../components/Text';
 import { useReducedMotion } from '../../../hooks/useReducedMotion';
 import { CheckIcon, ClockIcon, ReplyIcon, TrashIcon } from './ChatIcons';
+import { VoiceMessagePlayer } from './VoiceMessagePlayer';
 import type { ChatMessage } from '../types';
 
 export interface MessageBubbleProps {
@@ -144,16 +145,29 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           </View>
         )}
 
-        {/* Message Body Content */}
-        <Text
-          variant="body"
-          style={[
-            styles.bodyText,
-            isCurrentUser ? styles.bodyOutgoing : styles.bodyIncoming,
-          ]}
-        >
-          {message.body}
-        </Text>
+        {/* Message Body Content or Voice Note Player */}
+        {message.body.startsWith('[Voice Note]') ||
+        message.attachments?.some((a) => a.mimeType.startsWith('audio/')) ? (
+          <VoiceMessagePlayer
+            messageId={message.id}
+            storagePath={
+              message.attachments?.find((a) => a.mimeType.startsWith('audio/'))
+                ?.storagePath
+            }
+            durationLabel={message.body.replace('[Voice Note]', '').trim()}
+            isCurrentUser={isCurrentUser}
+          />
+        ) : (
+          <Text
+            variant="body"
+            style={[
+              styles.bodyText,
+              isCurrentUser ? styles.bodyOutgoing : styles.bodyIncoming,
+            ]}
+          >
+            {message.body}
+          </Text>
+        )}
 
         {/* Footer Meta: Timestamp & Delivery Status */}
         <View style={styles.metaRow}>

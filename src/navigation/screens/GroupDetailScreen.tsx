@@ -18,6 +18,8 @@ import {
   GroupMemberRoster,
   GroupModuleHub,
 } from '../../features/groups';
+import { QRInviteModal } from '../../features/invites/components/QRInviteModal';
+import { GroupMemoriesModal } from '../../features/export';
 import type { RootStackScreenProps } from '../types';
 
 export const GroupDetailScreen: React.FC<RootStackScreenProps<'GroupDetail'>> = ({
@@ -31,6 +33,8 @@ export const GroupDetailScreen: React.FC<RootStackScreenProps<'GroupDetail'>> = 
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [qrModalVisible, setQrModalVisible] = useState<boolean>(false);
+  const [memoriesModalVisible, setMemoriesModalVisible] = useState<boolean>(false);
 
   const loadGroupData = useCallback(async () => {
     setError(null);
@@ -175,7 +179,26 @@ export const GroupDetailScreen: React.FC<RootStackScreenProps<'GroupDetail'>> = 
           currentUserRole={group.currentUserRole}
           isExpired={isExpired}
           onInvitePress={() => navigation.navigate('MainTabs', { screen: 'FriendsTab' })}
+          onQRInvitePress={() => setQrModalVisible(true)}
         />
+
+        {/* Group Memories Export Action Card */}
+        <View style={styles.memoriesCard}>
+          <View style={styles.memoriesTextCol}>
+            <Text variant="callout" weight="semibold" style={styles.memoriesTitle}>
+              Group Memories Export
+            </Text>
+            <Text variant="caption" style={styles.memoriesBody}>
+              Download chat logs, photos, tasks, and voice notes into a ZIP archive before dissolution.
+            </Text>
+          </View>
+          <Button
+            title="Export ZIP"
+            variant="outline"
+            size="sm"
+            onPress={() => setMemoriesModalVisible(true)}
+          />
+        </View>
 
         {/* Space Departure Action */}
         <View style={styles.footerActions}>
@@ -186,6 +209,23 @@ export const GroupDetailScreen: React.FC<RootStackScreenProps<'GroupDetail'>> = 
           />
         </View>
       </ScrollView>
+
+      {/* QR Code Invitation Modal */}
+      <QRInviteModal
+        visible={qrModalVisible}
+        groupId={group.id}
+        groupName={spaceName}
+        groupExpiresAt={group.expires_at}
+        onClose={() => setQrModalVisible(false)}
+      />
+
+      {/* Group Memories Export Modal */}
+      <GroupMemoriesModal
+        visible={memoriesModalVisible}
+        groupId={group.id}
+        groupName={spaceName}
+        onClose={() => setMemoriesModalVisible(false)}
+      />
     </FadeInContent>
   </Screen>
 );
@@ -229,6 +269,29 @@ const styles = StyleSheet.create({
   footerActions: {
     marginTop: tokens.spacing.md,
     marginBottom: tokens.spacing.xl,
+  },
+  memoriesCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#111827',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 255, 157, 0.25)',
+    borderRadius: tokens.radius.md,
+    padding: tokens.spacing.md,
+    marginTop: tokens.spacing.sm,
+    gap: tokens.spacing.md,
+  },
+  memoriesTextCol: {
+    flex: 1,
+  },
+  memoriesTitle: {
+    color: '#F8FAFC',
+    marginBottom: 2,
+  },
+  memoriesBody: {
+    color: '#94A3B8',
+    lineHeight: 16,
   },
 });
 

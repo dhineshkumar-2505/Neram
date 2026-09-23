@@ -13,10 +13,22 @@ import { PollsScreen } from '../features/polls/screens/PollsScreen';
 import { EventsScreen } from '../features/events/screens/EventsScreen';
 import { MediaVaultScreen } from '../features/files/screens/MediaVaultScreen';
 import { LocationSessionScreen } from '../features/location/screens/LocationSessionScreen';
+import QRScannerScreen from '../features/invites/screens/QRScannerScreen';
+import JoinGroupScreen from '../features/invites/screens/JoinGroupScreen';
 import AuthNavigator from './AuthNavigator';
 import AuthLoadingScreen from '../features/auth/screens/AuthLoadingScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+const linking = {
+  prefixes: ['neram://', 'https://neram.app'],
+  config: {
+    screens: {
+      JoinGroup: 'invite/:token',
+      QRScanner: 'scan',
+    },
+  },
+};
 
 export const RootNavigator: React.FC = () => {
   const { status } = useAuth();
@@ -27,7 +39,7 @@ export const RootNavigator: React.FC = () => {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={process.env.NODE_ENV === 'test' ? undefined : linking}>
       {status === 'AUTHENTICATED' ? (
         <Stack.Navigator
           screenOptions={{
@@ -88,6 +100,23 @@ export const RootNavigator: React.FC = () => {
             component={LocationSessionScreen}
             options={{
               headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="QRScanner"
+            component={QRScannerScreen}
+            options={{
+              headerShown: false,
+              animation: 'fade',
+            }}
+          />
+          <Stack.Screen
+            name="JoinGroup"
+            component={JoinGroupScreen}
+            options={{
+              headerShown: false,
+              presentation: 'transparentModal',
+              animation: 'fade',
             }}
           />
         </Stack.Navigator>

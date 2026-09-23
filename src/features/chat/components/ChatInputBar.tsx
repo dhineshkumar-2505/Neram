@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   TextInput,
@@ -9,12 +9,14 @@ import { tokens } from '../../../design';
 import Text from '../../../components/Text';
 import { SendIcon, LockIcon } from './ChatIcons';
 import ReplyPreviewCard from './ReplyPreviewCard';
+import { VoiceRecordButton } from './VoiceRecordButton';
 import type { ReplyPreview } from '../types';
 
 export interface ChatInputBarProps {
   inputText: string;
   onChangeText: (text: string) => void;
   onSend: () => void;
+  onSendVoiceNote?: (uri: string, durationMillis: number) => void;
   isExpired?: boolean;
   isSending?: boolean;
   replyTo?: ReplyPreview | null;
@@ -29,11 +31,14 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
   inputText,
   onChangeText,
   onSend,
+  onSendVoiceNote,
   isExpired = false,
   isSending = false,
   replyTo,
   onCancelReply,
 }) => {
+  const [isRecordingVoice, setIsRecordingVoice] = useState<boolean>(false);
+
   // When space is expired, render persistent read-only banner
   if (isExpired) {
     return (
@@ -56,34 +61,52 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
       )}
 
       <View style={styles.inputRow}>
-        <TextInput
-          style={styles.textInput}
-          value={inputText}
-          onChangeText={onChangeText}
-          placeholder="Type an ephemeral message..."
-          placeholderTextColor="#64748B"
-          multiline
-          maxLength={4000}
-          accessibilityLabel="Message input"
-          testID="chat-message-input"
-        />
-
-        <Pressable
-          onPress={onSend}
-          disabled={isSendDisabled}
-          style={[
-            styles.sendButton,
-            isSendDisabled ? styles.sendButtonDisabled : styles.sendButtonActive,
-          ]}
-          accessibilityRole="button"
-          accessibilityLabel="Send message"
-          testID="chat-send-button"
-        >
-          <SendIcon
-            size={18}
-            color={isSendDisabled ? 'rgba(255, 255, 255, 0.4)' : '#FFFFFF'}
+        {isRecordingVoice ? (
+          <VoiceRecordButton
+            onAudioRecorded={onSendVoiceNote || (() => {})}
+            onRecordingStateChange={setIsRecordingVoice}
+            disabled={isSending}
           />
-        </Pressable>
+        ) : (
+          <>
+            <TextInput
+              style={styles.textInput}
+              value={inputText}
+              onChangeText={onChangeText}
+              placeholder="Type an ephemeral message..."
+              placeholderTextColor="#64748B"
+              multiline
+              maxLength={4000}
+              accessibilityLabel="Message input"
+              testID="chat-message-input"
+            />
+
+            {inputText.trim().length > 0 || !onSendVoiceNote ? (
+              <Pressable
+                onPress={onSend}
+                disabled={isSendDisabled}
+                style={[
+                  styles.sendButton,
+                  isSendDisabled ? styles.sendButtonDisabled : styles.sendButtonActive,
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel="Send message"
+                testID="chat-send-button"
+              >
+                <SendIcon
+                  size={18}
+                  color={isSendDisabled ? 'rgba(255, 255, 255, 0.4)' : '#FFFFFF'}
+                />
+              </Pressable>
+            ) : (
+              <VoiceRecordButton
+                onAudioRecorded={onSendVoiceNote}
+                onRecordingStateChange={setIsRecordingVoice}
+                disabled={isSending}
+              />
+            )}
+          </>
+        )}
       </View>
     </View>
   );

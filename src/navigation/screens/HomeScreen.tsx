@@ -4,6 +4,7 @@ import { Screen, Text, Card, Button } from '../../components';
 import { tokens } from '../../design';
 import { useAuth } from '../../hooks/useAuth';
 import TimeGlyph from '../../features/auth/components/TimeGlyph';
+import { QrCodeIcon } from '../../components/icons/CommonIcons';
 import type { MainTabScreenProps } from '../types';
 
 export const HomeScreen: React.FC<MainTabScreenProps<'HomeTab'>> = ({ navigation }) => {
@@ -22,7 +23,17 @@ export const HomeScreen: React.FC<MainTabScreenProps<'HomeTab'>> = ({ navigation
             Welcome back, {displayName}
           </Text>
         </View>
-        <TimeGlyph size={42} color="#818CF8" accentColor="#2DD4BF" />
+        <View style={styles.headerIcons}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Scan QR Invite"
+            style={styles.qrHeaderButton}
+            onPress={() => navigation.navigate('QRScanner')}
+          >
+            <QrCodeIcon size={20} color="#00FF9D" />
+          </Pressable>
+          <TimeGlyph size={42} color="#818CF8" accentColor="#2DD4BF" />
+        </View>
       </View>
 
       {/* Ephemeral Status Card */}
@@ -77,6 +88,26 @@ export const HomeScreen: React.FC<MainTabScreenProps<'HomeTab'>> = ({ navigation
           </Text>
         </Pressable>
       </View>
+
+      {/* QR Code Quick Join Banner */}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Scan QR Invite Code"
+        style={styles.qrBanner}
+        onPress={() => navigation.navigate('QRScanner')}
+      >
+        <View style={styles.qrBannerIconWrap}>
+          <QrCodeIcon size={24} color="#00FF9D" />
+        </View>
+        <View style={styles.qrBannerContent}>
+          <Text variant="callout" weight="semibold" style={styles.qrBannerTitle}>
+            Scan Space QR Code
+          </Text>
+          <Text variant="caption" style={styles.qrBannerSub}>
+            Point your camera to join a temporary space instantly
+          </Text>
+        </View>
+      </Pressable>
 
       {/* Group Detail Navigation Inspector */}
       <Card variant="subtle" style={styles.inspectCard}>
@@ -204,6 +235,51 @@ const styles = StyleSheet.create({
   inspectBody: {
     color: '#94A3B8',
     marginBottom: tokens.spacing.md,
+  },
+  headerIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.spacing.sm,
+  },
+  qrHeaderButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#1E293B',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 255, 157, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  qrBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#111827',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 255, 157, 0.25)',
+    borderRadius: tokens.radius.md,
+    padding: tokens.spacing.md,
+    marginBottom: tokens.spacing.lg,
+    gap: tokens.spacing.md,
+  },
+  qrBannerIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0, 255, 157, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  qrBannerContent: {
+    flex: 1,
+  },
+  qrBannerTitle: {
+    color: '#F8FAFC',
+    marginBottom: 2,
+  },
+  qrBannerSub: {
+    color: '#94A3B8',
+    lineHeight: 16,
   },
 });
 

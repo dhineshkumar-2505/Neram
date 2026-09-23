@@ -999,6 +999,31 @@ export type Database = {
         Args: { p_poll_id: string }
         Returns: Json
       }
+      create_group_invite: {
+        Args: {
+          p_expires_at: string
+          p_group_id: string
+          p_max_uses?: number | null
+          p_token_hash: string
+        }
+        Returns: Json
+      }
+      execute_group_database_purge: {
+        Args: { p_group_id: string }
+        Returns: boolean
+      }
+      join_group_via_invite: {
+        Args: { p_token_hash: string }
+        Returns: Json
+      }
+      preview_group_invite: {
+        Args: { p_token_hash: string }
+        Returns: Json
+      }
+      revoke_group_invite: {
+        Args: { p_invite_id: string }
+        Returns: boolean
+      }
       is_blocked: {
         Args: { p_user_a: string; p_user_b: string }
         Returns: boolean

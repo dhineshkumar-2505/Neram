@@ -406,3 +406,61 @@ flowchart TD
   - 0 TypeScript errors (`npm run typecheck`).
   - 0 ESLint errors or warnings (`npm run lint`).
   - Android production export validated (`npx expo export --platform android --no-bytecode` compiling 1269 modules with zero errors).
+
+### Part 11 — QR Code Invites, Audio/Voice Messages & Group Memories Export (COMPLETED)
+- **Feature 1: Cryptographic QR Code Group Invites**:
+  - Migration `20260923000012_part11_qr_invites_and_purges.sql`:
+    - Created `public.group_invitations` table with 256-bit cryptographically secure token hashes (`token_hash`), RLS enabled, and partial index on `token_hash`.
+    - Created atomic security RPCs:
+      - `create_group_invite(p_group_id, p_token_hash, p_expires_at, p_max_uses)`: restricted to group members.
+      - `preview_group_invite(p_token_hash)`: `SECURITY DEFINER` verifying token expiration, max uses, group active state, and block status without leaking secret tokens.
+      - `join_group_via_invite(p_token_hash)`: `SECURITY DEFINER` with row-level locks (`FOR UPDATE`), atomic use count decrement (`uses_count = uses_count + 1`), bidirectional block enforcement, and idempotent group membership creation.
+      - `revoke_group_invite(p_invite_id)`: OWNER/ADMIN role enforced.
+    - Updated `execute_group_database_purge` to permanently purge `group_invitations` on space expiration.
+  - Client Services & UI:
+    - `src/features/invites/services/inviteService.ts`: Generates 256-bit entropy tokens using `expo-crypto`, computes SHA-256 hashes, handles deep-link format `neram://invite/:token`.
+    - `src/features/invites/components/QRInviteModal.tsx`: Visual QR code display using `react-native-qrcode-svg`, live expiry countdown, usage limits, and native share sheet dispatch.
+    - `src/features/invites/screens/QRScannerScreen.tsx`: Modern camera scanner using `expo-camera` (`CameraView`), custom viewport overlay with pulsing emerald scanline, torch toggle, and permission gating.
+    - `src/features/invites/screens/JoinGroupScreen.tsx` & `JoinGroupModal.tsx`: High-aesthetic preview card showing space purpose, expiration time, member count, and atomic single-tap join.
+    - Integrated QR scanner launcher in `HomeScreen.tsx` and "Invite via QR" trigger in `GroupMemberRoster.tsx` and `GroupDetailScreen.tsx`.
+- **Feature 2: Audio / Voice Messages**:
+  - Client Recording & Playback Pipeline:
+    - `src/features/chat/services/audioRecordingService.ts`: `expo-av` recording pipeline with 120-second hard limit auto-stop, `.m4a` format, and global single-playback coordinator guarantee (stopping any other playing audio when a new one starts).
+    - Private attachment storage under `${groupId}/audio/${fileId}.m4a` with signed URL caching.
+  - Modern In-Chat Audio UX:
+    - `src/features/chat/components/VoiceRecordButton.tsx`: Audio recording button with pulsing red dot, elapsed duration ticker, drag/press cancel, and automatic commit.
+    - `src/features/chat/components/VoiceMessagePlayer.tsx`: Custom waveform visualizer with playback progress scrubber, dynamic play/pause state, and elapsed/total duration indicators.
+    - `src/features/chat/components/ChatInputBar.tsx`: Seamlessly transforms into voice recorder mode when text input is empty.
+    - `src/features/chat/components/MessageBubble.tsx`: Renders audio voice notes with bespoke styling.
+    - `src/features/chat/screens/ChatScreen.tsx`: Optimistic voice message dispatch and background upload.
+- **Feature 3: Group Memories Export**:
+  - Deterministic Client-Side ZIP Archive Generation:
+    - `src/features/export/services/groupMemoriesExportService.ts`: Uses `jszip` to compile complete offline group archives:
+      - `README.txt`: Space purpose, duration, participant roster, and ephemeral notice.
+      - `chat_recap.txt`: Chronological human-readable transcript.
+      - `tasks.json`, `events.json`, `polls.json`: Structured JSON state of all collaboration items.
+      - `photos/`: Media vault images downloaded and packaged.
+      - `audio/`: Voice notes saved and packaged.
+      - `manifest.json`: Verification manifest with item counts and SHA-ready metadata.
+    - File storage via `expo-file-system/legacy` into app cache and native system dispatch via `expo-sharing`.
+  - Export UI:
+    - `src/features/export/components/GroupMemoriesModal.tsx`: Export dialog with progress bar across 7 steps, media inclusion toggles, and direct share action.
+    - Integrated into `GroupDetailScreen.tsx` action cards.
+- **Security Penetration & Negative Test Suite**:
+  - Created `tests/security/part11Penetration.test.ts` (15 tests covering all Part 11 security vectors):
+    - Brute-force & invalid invite token rejection.
+    - Expired invite token and expired group rejection.
+    - Max uses limit enforcement.
+    - Blocked user invite rejection.
+    - Non-member invite creation rejection.
+    - Service role key leakage prevention.
+    - Auto-purge verification for invitations and audio bucket files.
+    - Deep-link URL parsing and malformed link rejection.
+    - Voice recording 120s limit enforcement.
+    - Global single-playback audio coordinator guarantee.
+- **Comprehensive Quality Verification**:
+  - 100% test pass rate: 77 test suites, 605 tests passing cleanly.
+  - 0 TypeScript errors (`npm run typecheck`).
+  - 0 ESLint errors or warnings (`npm run lint -- --max-warnings 0`).
+  - Android production export validated (`npx expo export --platform android --no-bytecode` compiling 1577 modules with zero errors).
+

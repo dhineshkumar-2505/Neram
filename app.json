@@ -35,6 +35,19 @@
           "icon": "./assets/icon.png",
           "color": "#00FF9D"
         }
+      ],
+      "expo-sharing",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Neram to access your camera to scan group invite QR codes."
+        }
+      ],
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Allow Neram to access your microphone to record voice messages in temporary groups."
+        }
       ]
     ]
   }

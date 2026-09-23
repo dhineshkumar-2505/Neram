@@ -57,3 +57,81 @@ jest.mock('@maplibre/maplibre-react-native', () => {
     UserLocation: () => null,
   };
 });
+
+// Mock expo-av for Jest tests
+jest.mock('expo-av', () => {
+  const mockRecording = {
+    prepareToRecordAsync: jest.fn().mockResolvedValue({}),
+    startAsync: jest.fn().mockResolvedValue({}),
+    stopAndUnloadAsync: jest.fn().mockResolvedValue({}),
+    getURI: jest.fn().mockReturnValue('file:///mock/recording.m4a'),
+    setOnRecordingStatusUpdate: jest.fn(),
+  };
+
+  const mockSound = {
+    playAsync: jest.fn().mockResolvedValue({}),
+    pauseAsync: jest.fn().mockResolvedValue({}),
+    stopAsync: jest.fn().mockResolvedValue({}),
+    unloadAsync: jest.fn().mockResolvedValue({}),
+    setPositionAsync: jest.fn().mockResolvedValue({}),
+    getStatusAsync: jest.fn().mockResolvedValue({ isLoaded: true, isPlaying: false }),
+  };
+
+  return {
+    Audio: {
+      requestPermissionsAsync: jest.fn().mockResolvedValue({ granted: true }),
+      setAudioModeAsync: jest.fn().mockResolvedValue({}),
+      Recording: jest.fn().mockImplementation(() => mockRecording),
+      Sound: {
+        createAsync: jest.fn().mockResolvedValue({ sound: mockSound }),
+      },
+      RecordingOptionsPresets: {
+        HIGH_QUALITY: {},
+      },
+    },
+  };
+});
+
+// Mock expo-camera for Jest tests
+jest.mock('expo-camera', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+
+  return {
+    CameraView: ({ children, ...props }: any) =>
+      React.createElement(View, { testID: 'camera-view', ...props }, children),
+    useCameraPermissions: () => [{ granted: true, canAskAgain: true }, jest.fn()],
+  };
+});
+
+// Mock expo-crypto for Jest tests
+jest.mock('expo-crypto', () => {
+  const crypto = require('crypto');
+  return {
+    CryptoDigestAlgorithm: {
+      SHA256: 'SHA-256',
+    },
+    digestStringAsync: jest.fn(async (_algo: string, str: string) => {
+      return crypto.createHash('sha256').update(str).digest('hex');
+    }),
+    getRandomBytesAsync: jest.fn(async (byteCount: number) => {
+      return crypto.randomBytes(byteCount);
+    }),
+  };
+});
+
+// Mock expo-file-system & expo-file-system/legacy for Jest tests
+const mockFileSystem = {
+  cacheDirectory: 'file:///mock/cache/',
+  documentDirectory: 'file:///mock/documents/',
+  writeAsStringAsync: jest.fn().mockResolvedValue(undefined),
+  readAsStringAsync: jest.fn().mockResolvedValue(''),
+  getInfoAsync: jest.fn().mockResolvedValue({ exists: true, size: 1048576 }),
+  deleteAsync: jest.fn().mockResolvedValue(undefined),
+  EncodingType: {
+    Base64: 'base64',
+    UTF8: 'utf8',
+  },
+};
+jest.mock('expo-file-system', () => mockFileSystem);
+jest.mock('expo-file-system/legacy', () => mockFileSystem);

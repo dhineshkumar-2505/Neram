@@ -160,3 +160,19 @@ export const SuccessCircleIcon: React.FC<IconProps> = ({ size = 20, color = '#10
     />
   </Svg>
 );
+
+export const QrCodeIcon: React.FC<IconProps> = ({ size = 20, color = '#00FF9D' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M3 3H9V9H3V3Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    <Path d="M5.5 5.5H6.5V6.5H5.5V5.5Z" fill={color} />
+    <Path d="M15 3H21V9H15V3Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    <Path d="M17.5 5.5H18.5V6.5H17.5V5.5Z" fill={color} />
+    <Path d="M3 15H9V21H3V15Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    <Path d="M5.5 17.5H6.5V18.5H5.5V17.5Z" fill={color} />
+    <Path d="M15 15H17V17H15V15Z" fill={color} />
+    <Path d="M19 15H21V17H19V15Z" fill={color} />
+    <Path d="M17 19H21V21H17V19Z" fill={color} />
+    <Path d="M15 17H17V19H15V17Z" fill={color} />
+  </Svg>
+);
+
