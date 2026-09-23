@@ -36,6 +36,9 @@ export default [
         afterAll: 'readonly',
         Blob: 'readonly',
         FormData: 'readonly',
+        requestAnimationFrame: 'readonly',
+        cancelAnimationFrame: 'readonly',
+        require: 'readonly',
       },
     },
     plugins: {
@@ -60,6 +63,13 @@ export default [
       react: {
         version: 'detect',
       },
+    },
+  },
+  {
+    files: ['tests/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
     },
   },
   prettierConfig,

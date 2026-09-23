@@ -137,7 +137,7 @@ describe('LocationSessionScreen', () => {
   });
 
   it('renders header, space name, remaining lifespan badge, and active session details', async () => {
-    const { getByText, findByText } = render(
+    const { getByText, findByText, getAllByText, getByTestId } = render(
       <LocationSessionScreen route={mockRoute} navigation={mockNavigation} />,
     );
 
@@ -145,7 +145,8 @@ describe('LocationSessionScreen', () => {
     expect(getByText('Live Outing & ETA')).toBeTruthy();
     expect(getByText('1d 14h remaining')).toBeTruthy();
     expect(getByText('Trailhead Meetup & Hike')).toBeTruthy();
-    expect(getByText('North Ridge Lookout')).toBeTruthy();
+    expect(getAllByText('North Ridge Lookout').length).toBeGreaterThanOrEqual(1);
+    expect(getByTestId('session-map-card')).toBeTruthy();
     expect(getByText('Organized by @dave_hikes')).toBeTruthy();
   });
 

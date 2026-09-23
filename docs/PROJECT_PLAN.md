@@ -289,7 +289,18 @@ flowchart TD
   - React Lifecycle Hook (`useLocationTracking.ts`): Manages live tracking state synchronized with participant opt-in and space expiration.
   - UI Telemetry Card: Live movement badge with bespoke vector icons (`WalkingIcon`, `CarIcon`, `ActivityPulseIcon`, `BatterySavingIcon`), sync count, and adaptive battery suppression tag.
   - Verification: 5 new test suites (51/51 suites, 403/403 tests passing, 100% pass rate) and clean Android Metro export bundle.
-- **Step 8.3: MapLibre Vector Map & Ephemeral Participant Visualization** — *Upcoming*
+- **Step 8.3: MapLibre Vector Map & Ephemeral Participant Visualization** — **COMPLETED**
+  - Vector Map Architecture: Implemented `@maplibre/maplibre-react-native` with keyless OpenFreeMap Dark vector tiles (`https://tiles.openfreemap.org/styles/dark`) adhering to Neram's Obsidian Dark palette.
+  - Separation of Concerns: Map is purely a consumer of location state; GPS acquisition, filtering, and transmission remain isolated within Step 8.2 (`locationEngine`).
+  - Realtime Synchronization (`useRealtimeLocations`): Subscribes to `public.current_locations` via Supabase Realtime channel `realtime-locations-${sessionId}` with initial fetch + merge, disconnect handling, and automatic teardown on unmount.
+  - Smooth Coordinate Interpolation (`interpolateCoordinate`): Linear spherical lerp animation with large-jump snap protection ($> 2000\text{m}$) preventing panning across artificial trajectories or teleports.
+  - Staleness Detection (`locationFreshness`): Fixes older than 5 minutes receive subdued/stale styling (`#6B7280`) with relative age labels ("Just now", "2m ago", "Stale").
+  - Destination Resolution (`useEventDestination`): Integrates Step 7.3 Events itinerary, prioritizing upcoming milestone events with coordinates, then upcoming events, falling back to location session coordinates.
+  - Member Markers (`MemberLocationMarker`): Avatar / 2-letter uppercase initials fallback, movement state ring (Cyan for Driving, Emerald for Walking, Amber for Stationary), self pulse glow ring, and "YOU" badge.
+  - Destination Marker (`DestinationMarker`): Rendezvous pin / milestone flag with venue name pill.
+  - Map Viewport Controls (`LocationMapControls`): "Center on Me" (moves viewport without re-requesting GPS), "Fit Group" (fits camera bounds over members and destination), and connection status banner.
+  - Outing Screen Integration: Vector map prominently embedded in `LocationSessionScreen` during active sessions.
+  - Comprehensive Verification: 8 new unit/component test suites (59/59 suites, 446/446 tests passing, 100% pass rate), 0 ESLint warnings, 0 TypeScript errors, and clean Android Metro export bundle (1236 modules compiled in 5.4s).
 - **Step 8.4: Valhalla Routing, Live ETA & Destination Geofence Engine** — *Upcoming*
 
 

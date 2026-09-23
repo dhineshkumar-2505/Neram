@@ -121,3 +121,37 @@ export interface LocationTrackingState {
   transmissionCount: number;
   error: string | null;
 }
+
+/**
+ * Step 8.3 Map Visualization, Interpolation & Destination Types
+ */
+export interface InterpolatedCoordinate {
+  latitude: number;
+  longitude: number;
+}
+
+export interface MemberLocationRecord extends CurrentLocation {
+  movementState: MovementState;
+  isStale: boolean;
+  isCurrentUser: boolean;
+  interpolated?: InterpolatedCoordinate;
+}
+
+export interface EventDestination {
+  id: string;
+  title: string;
+  latitude: number;
+  longitude: number;
+  locationName?: string | null;
+  isMilestone?: boolean;
+  targetTime?: string | null;
+  source: 'EVENT_MILESTONE' | 'EVENT' | 'SESSION_DESTINATION';
+}
+
+export interface MapBoundingBox {
+  minLng: number;
+  minLat: number;
+  maxLng: number;
+  maxLat: number;
+  bounds: [number, number, number, number]; // [west, south, east, north]
+}

@@ -20,6 +20,9 @@ import type { GroupDetailedRecord } from '../../groups/types';
 import type { RootStackScreenProps } from '../../../navigation/types';
 import { useLocationSession } from '../hooks/useLocationSession';
 import { useLocationTracking } from '../hooks/useLocationTracking';
+import { useRealtimeLocations } from '../hooks/useRealtimeLocations';
+import { useEventDestination } from '../hooks/useEventDestination';
+import { LocationMap } from '../components/LocationMap';
 import { LocationOptInModal } from '../components/LocationOptInModal';
 import { CreateSessionModal } from '../components/CreateSessionModal';
 import {
@@ -87,6 +90,25 @@ export const LocationSessionScreen: React.FC<RootStackScreenProps<'LocationSessi
     activeSession?.id,
     isParticipating,
     isExpired,
+  );
+
+  const {
+    locations: realtimeLocations,
+    isConnected: isRealtimeConnected,
+  } = useRealtimeLocations(activeSession?.id, currentUserId);
+
+  const {
+    destination: eventDestination,
+  } = useEventDestination(
+    groupId,
+    activeSession
+      ? {
+          destinationLat: activeSession.destinationLat,
+          destinationLng: activeSession.destinationLng,
+          destinationName: activeSession.destinationName,
+          title: activeSession.title,
+        }
+      : null,
   );
 
   const spaceName = group?.name || initialGroupName || 'Space';
@@ -252,6 +274,16 @@ export const LocationSessionScreen: React.FC<RootStackScreenProps<'LocationSessi
                     </Text>
                   </View>
                 )}
+              </View>
+
+              {/* Step 8.3 Live Vector Map */}
+              <View style={styles.mapCard} testID="session-map-card">
+                <LocationMap
+                  locations={realtimeLocations}
+                  destination={eventDestination}
+                  currentUserId={currentUserId}
+                  isConnected={isRealtimeConnected}
+                />
               </View>
 
               {/* Participation Status / Actions Card */}
@@ -570,6 +602,15 @@ const styles = StyleSheet.create({
   metaText: {
     color: tokens.colors.text.tertiary,
     fontSize: 11,
+  },
+  mapCard: {
+    height: 320,
+    borderRadius: tokens.radius.lg,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: tokens.colors.border.subtle,
+    backgroundColor: '#0D1117',
+    marginBottom: tokens.spacing.md,
   },
   participationCard: {
     backgroundColor: '#13151A',
