@@ -8,6 +8,7 @@ import type { RootStackParamList } from './types';
 import MainTabNavigator from './MainTabNavigator';
 import GroupDetailScreen from './screens/GroupDetailScreen';
 import ChatScreen from '../features/chat/screens/ChatScreen';
+import TaskBoardScreen from '../features/tasks/screens/TaskBoardScreen';
 import AuthNavigator from './AuthNavigator';
 import AuthLoadingScreen from '../features/auth/screens/AuthLoadingScreen';
 
@@ -46,6 +47,13 @@ export const RootNavigator: React.FC = () => {
           <Stack.Screen
             name="Chat"
             component={ChatScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="TaskBoard"
+            component={TaskBoardScreen}
             options={{
               headerShown: false,
             }}

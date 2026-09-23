@@ -810,6 +810,7 @@ export type Database = {
           description: string | null
           group_id: string
           id: string
+          position: number
           priority: Database["public"]["Enums"]["task_priority"]
           status: Database["public"]["Enums"]["task_status"]
           title: string
@@ -822,6 +823,7 @@ export type Database = {
           description?: string | null
           group_id: string
           id?: string
+          position?: number
           priority?: Database["public"]["Enums"]["task_priority"]
           status?: Database["public"]["Enums"]["task_status"]
           title: string
@@ -834,6 +836,7 @@ export type Database = {
           description?: string | null
           group_id?: string
           id?: string
+          position?: number
           priority?: Database["public"]["Enums"]["task_priority"]
           status?: Database["public"]["Enums"]["task_status"]
           title?: string

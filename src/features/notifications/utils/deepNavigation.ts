@@ -59,7 +59,23 @@ export function handleNotificationDeepNavigation(
     }
 
     case 'TASK_ASSIGNED':
-    case 'TASK_DEADLINE':
+    case 'TASK_DEADLINE': {
+      if (!groupId) {
+        Alert.alert(
+          'Task Board Unavailable',
+          'The temporary space containing this task has dissolved.',
+          [{ text: 'Understood' }],
+        );
+        return;
+      }
+
+      navigation.navigate('TaskBoard', {
+        groupId,
+        groupName: group?.name,
+      });
+      break;
+    }
+
     case 'EVENT_REMINDER':
     case 'MEETING_APPROACHING':
     case 'MEMBER_ARRIVED': {
