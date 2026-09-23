@@ -19,6 +19,7 @@ import { useGroupLifecycle } from '../../groups/hooks/useGroupLifecycle';
 import type { GroupDetailedRecord } from '../../groups/types';
 import type { RootStackScreenProps } from '../../../navigation/types';
 import { useLocationSession } from '../hooks/useLocationSession';
+import { useLocationTracking } from '../hooks/useLocationTracking';
 import { LocationOptInModal } from '../components/LocationOptInModal';
 import { CreateSessionModal } from '../components/CreateSessionModal';
 import {
@@ -27,6 +28,10 @@ import {
   UserLocationIcon,
   LockIcon,
   LeaveIcon,
+  WalkingIcon,
+  CarIcon,
+  ActivityPulseIcon,
+  BatterySavingIcon,
 } from '../components/LocationIcons';
 
 export const LocationSessionScreen: React.FC<RootStackScreenProps<'LocationSession'>> = ({
@@ -76,6 +81,13 @@ export const LocationSessionScreen: React.FC<RootStackScreenProps<'LocationSessi
     leaveSession,
     endSession,
   } = useLocationSession(groupId, currentUserId);
+
+  const trackingState = useLocationTracking(
+    groupId,
+    activeSession?.id,
+    isParticipating,
+    isExpired,
+  );
 
   const spaceName = group?.name || initialGroupName || 'Space';
   const remainingTimeText = isExpired
@@ -246,7 +258,8 @@ export const LocationSessionScreen: React.FC<RootStackScreenProps<'LocationSessi
               {!isExpired && (
                 <View style={styles.participationCard}>
                   {isParticipating ? (
-                    <View style={styles.participatingBanner}>
+                    <>
+                      <View style={styles.participatingBanner}>
                       <View style={styles.participatingTextRow}>
                         <UserLocationIcon size={20} color="#10B981" />
                         <Text variant="callout" weight="semibold" style={styles.participatingText}>
@@ -268,6 +281,50 @@ export const LocationSessionScreen: React.FC<RootStackScreenProps<'LocationSessi
                         </Text>
                       </Pressable>
                     </View>
+
+                    {/* Live Movement State & Adaptive Telemetry Card */}
+                    <View style={styles.telemetryCard}>
+                      <View style={styles.telemetryHeader}>
+                        <View style={styles.movementBadge}>
+                          {trackingState.movementState === 'DRIVING' ? (
+                            <CarIcon size={16} color="#38BDF8" />
+                          ) : trackingState.movementState === 'WALKING' ? (
+                            <WalkingIcon size={16} color="#10B981" />
+                          ) : trackingState.movementState === 'STATIONARY' ? (
+                            <CompassIcon size={16} color="#F59E0B" />
+                          ) : (
+                            <ActivityPulseIcon size={16} color="#94A3B8" />
+                          )}
+                          <Text variant="caption" weight="bold" style={styles.movementText}>
+                            {trackingState.movementState}
+                          </Text>
+                        </View>
+
+                        <View style={styles.batteryBadge}>
+                          <BatterySavingIcon size={14} color="#10B981" />
+                          <Text variant="caption" style={styles.batteryBadgeText}>
+                            Adaptive Battery Filter
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.telemetryInfoRow}>
+                        <Text variant="caption" style={styles.telemetrySubtext}>
+                          {trackingState.movementState === 'STATIONARY'
+                            ? 'Transmissions suppressed until movement > 25m'
+                            : trackingState.movementState === 'WALKING'
+                            ? 'Transmitting every 30s or 15m displacement'
+                            : trackingState.movementState === 'DRIVING'
+                            ? 'Transmitting every 10s or 50m displacement'
+                            : 'Analyzing movement telemetry...'}
+                        </Text>
+                        <Text variant="caption" weight="medium" style={styles.syncCountText}>
+                          {trackingState.transmissionCount}{' '}
+                          {trackingState.transmissionCount === 1 ? 'sync' : 'syncs'}
+                        </Text>
+                      </View>
+                    </View>
+                  </>
                   ) : (
                     <View style={styles.joinPromptContainer}>
                       <Text variant="body" weight="medium" style={styles.joinPromptTitle}>
@@ -550,6 +607,65 @@ const styles = StyleSheet.create({
   },
   leaveButtonText: {
     color: '#EF4444',
+  },
+  telemetryCard: {
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  telemetryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  movementBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: tokens.radius.full,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  movementText: {
+    color: tokens.colors.text.primary,
+    fontSize: 10,
+    letterSpacing: 0.5,
+  },
+  batteryBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: tokens.radius.xs,
+    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.2)',
+  },
+  batteryBadgeText: {
+    color: '#10B981',
+    fontSize: 10,
+  },
+  telemetryInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 2,
+  },
+  telemetrySubtext: {
+    color: tokens.colors.text.tertiary,
+    fontSize: 11,
+    flex: 1,
+    marginRight: 8,
+  },
+  syncCountText: {
+    color: tokens.colors.text.secondary,
+    fontSize: 11,
   },
   joinPromptContainer: {
     alignItems: 'center',

@@ -1,6 +1,6 @@
 import * as React from 'react';
 void React;
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import { LocationSessionScreen } from '../../src/features/location/screens/LocationSessionScreen';
 import * as authHook from '../../src/hooks/useAuth';
 import * as locationHook from '../../src/features/location/hooks/useLocationSession';
@@ -229,7 +229,7 @@ describe('LocationSessionScreen', () => {
       isExpired: true,
     });
 
-    const { getByText, queryByTestId, findByText } = render(
+    const { queryByTestId, findByText } = render(
       <LocationSessionScreen route={mockRoute} navigation={mockNavigation} />,
     );
 

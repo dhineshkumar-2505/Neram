@@ -105,7 +105,7 @@ describe('locationSessionService', () => {
         destinationName: 'Main Entrance',
         destinationLat: 40.7128,
         destinationLng: -74.006,
-        endsAt: '2026-09-23T14:00:00Z',
+        durationMinutes: 120,
       };
 
       const mockSessionRow = {
@@ -160,10 +160,10 @@ describe('locationSessionService', () => {
       const input: CreateSessionInput = {
         groupId: 'grp_100',
         title: 'Failing Outing',
-        destinationName: null,
+        destinationName: undefined,
         destinationLat: 40.7128,
         destinationLng: -74.006,
-        endsAt: '2026-09-23T14:00:00Z',
+        durationMinutes: 120,
       };
 
       const mockSessionRow = {
@@ -377,6 +377,54 @@ describe('locationSessionService', () => {
       expect(result.locations[0]?.longitude).toBe(-74.006);
       expect(result.locations[0]?.accuracy).toBe(5.2);
       expect(result.locations[0]?.user?.displayName).toBe('Alice Member');
+    });
+  });
+
+  describe('upsertCurrentLocation', () => {
+    it('upserts coordinate fix with conflict on session_id,user_id', async () => {
+      const mockUpsert = jest.fn().mockResolvedValue({ error: null });
+      (supabase.from as jest.Mock).mockReturnValue({ upsert: mockUpsert });
+
+      const result = await locationSessionService.upsertCurrentLocation('sess_1', 'usr_1', {
+        latitude: 40.7128,
+        longitude: -74.006,
+        accuracy: 10,
+        speed: 1.5,
+        heading: 180,
+        recordedAt: '2026-09-23T10:00:00Z',
+      });
+
+      expect(supabase.from).toHaveBeenCalledWith('current_locations');
+      expect(mockUpsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          session_id: 'sess_1',
+          user_id: 'usr_1',
+          latitude: 40.7128,
+          longitude: -74.006,
+          accuracy: 10,
+          speed: 1.5,
+          heading: 180,
+        }),
+        { onConflict: 'session_id,user_id' },
+      );
+      expect(result.success).toBe(true);
+    });
+
+    it('returns error when upsert fails', async () => {
+      const mockUpsert = jest.fn().mockResolvedValue({
+        error: { message: 'RLS restriction violated' },
+      });
+      (supabase.from as jest.Mock).mockReturnValue({ upsert: mockUpsert });
+
+      const result = await locationSessionService.upsertCurrentLocation('sess_1', 'usr_1', {
+        latitude: 40.7128,
+        longitude: -74.006,
+        accuracy: 10,
+        recordedAt: '2026-09-23T10:00:00Z',
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('RLS restriction violated');
     });
   });
 });

@@ -276,7 +276,20 @@ flowchart TD
   - Two-Stage Consent: Educational modal (`LocationOptInModal`) outlining 4 core guarantees (Session-Scoped, Strict Privacy, Ephemeral Purge, Zero Silent Tracking) before triggering native OS foreground location permission via `expo-location`.
   - Android-First Design: Obsidian Dark screen (`LocationSessionScreen`), countdown badge, active outing card, participating roster, bespoke vector icons (zero emojis), and read-only freeze when group expires.
   - Tests & Build: 4 new test suites (100% pass rate: 46/46 suites, 360/360 tests) + clean Android Metro bundle export.
-- **Step 8.2: Adaptive Geolocation & Battery Optimization Engine** — *Upcoming*
+- **Step 8.2: Adaptive Geolocation & Battery Optimization Engine** — **COMPLETED**
+  - Haversine Geodesic Math (`geoUtils.ts`): Accurate physical displacement calculation and strict coordinate/accuracy filters ($\le 65\text{m}$).
+  - Movement Classification (`movementEngine.ts`): Realtime state detection (`STATIONARY`, `WALKING`, `DRIVING`, `UNKNOWN`) with cross-validated speed/displacement and multi-sample hysteresis against GPS noise spikes.
+  - Adaptive Transmission Policy (`locationTransmissionPolicy.ts`): Strict separation between GPS sampling and network transmission:
+    - `STATIONARY`: 0 network transmissions by default; transmits only if displacement $> 25\text{m}$.
+    - `WALKING`: Transmits every $30\text{s}$ OR displacement $\ge 15\text{m}$.
+    - `DRIVING`: Transmits every $10\text{s}$ OR displacement $\ge 50\text{m}$.
+    - `INITIAL_LOCATION`: First fix transmitted immediately to establish baseline position.
+    - Duplicate jitter suppression: $< 3\text{m}$ in $< 60\text{s}$ suppressed.
+  - Centralized Engine Service (`locationEngine.ts`): Idempotent single active watcher, bounded network retry (1-item latest fix, no historical route queue), monotonic timestamp guards against race conditions, lifecycle integration (`AppState`, `onGroupExpired`, `onAuthSignedOut`).
+  - React Lifecycle Hook (`useLocationTracking.ts`): Manages live tracking state synchronized with participant opt-in and space expiration.
+  - UI Telemetry Card: Live movement badge with bespoke vector icons (`WalkingIcon`, `CarIcon`, `ActivityPulseIcon`, `BatterySavingIcon`), sync count, and adaptive battery suppression tag.
+  - Verification: 5 new test suites (51/51 suites, 403/403 tests passing, 100% pass rate) and clean Android Metro export bundle.
 - **Step 8.3: MapLibre Vector Map & Ephemeral Participant Visualization** — *Upcoming*
 - **Step 8.4: Valhalla Routing, Live ETA & Destination Geofence Engine** — *Upcoming*
+
 

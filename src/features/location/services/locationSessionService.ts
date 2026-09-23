@@ -494,4 +494,50 @@ export const locationSessionService = {
       return { locations: [], error: message };
     }
   },
+
+  /**
+   * Upserts the user's latest ephemeral coordinates to current_locations.
+   * Enforces server RLS policies requiring an active session and active participation.
+   */
+  async upsertCurrentLocation(
+    sessionId: string,
+    userId: string,
+    fix: {
+      latitude: number;
+      longitude: number;
+      accuracy: number;
+      speed?: number | null;
+      heading?: number | null;
+      recordedAt: string;
+    },
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      if (!sessionId || !userId) {
+        return { success: false, error: 'Session ID and User ID are required.' };
+      }
+
+      const { error } = await supabase.from('current_locations').upsert(
+        {
+          session_id: sessionId,
+          user_id: userId,
+          latitude: fix.latitude,
+          longitude: fix.longitude,
+          accuracy: fix.accuracy,
+          speed: fix.speed ?? null,
+          heading: fix.heading ?? null,
+          recorded_at: fix.recordedAt,
+        },
+        { onConflict: 'session_id,user_id' },
+      );
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to update current location.';
+      return { success: false, error: message };
+    }
+  },
 };

@@ -79,3 +79,45 @@ export interface CurrentLocationsResult {
   locations: CurrentLocation[];
   error?: string;
 }
+
+/**
+ * Step 8.2 Adaptive Geolocation & Battery Optimization Types
+ */
+export type MovementState = 'STATIONARY' | 'WALKING' | 'DRIVING' | 'UNKNOWN';
+
+export interface RawPositionFix {
+  latitude: number;
+  longitude: number;
+  accuracy: number;
+  altitude?: number | null;
+  heading?: number | null;
+  speed?: number | null; // Speed in m/s
+  timestamp: number; // Epoch timestamp in milliseconds
+}
+
+export interface TransmissionDecision {
+  shouldTransmit: boolean;
+  reason: string;
+  movementState: MovementState;
+  distanceMovedMeters: number;
+  elapsedTimeSeconds: number;
+}
+
+export interface TransmissionPolicyConfig {
+  stationaryDistanceThresholdMeters: number; // default: 25m
+  walkingTimeThresholdSeconds: number; // default: 30s
+  walkingDistanceThresholdMeters: number; // default: 15m
+  drivingTimeThresholdSeconds: number; // default: 10s
+  drivingDistanceThresholdMeters: number; // default: 50m
+  maxAcceptableAccuracyMeters: number; // default: 65m
+  minMovementDetectionMeters: number; // default: 3m (suppress GPS jitter)
+}
+
+export interface LocationTrackingState {
+  isTracking: boolean;
+  movementState: MovementState;
+  currentFix: RawPositionFix | null;
+  lastTransmittedAt: string | null;
+  transmissionCount: number;
+  error: string | null;
+}
